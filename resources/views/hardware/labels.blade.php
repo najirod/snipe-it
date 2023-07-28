@@ -155,8 +155,9 @@ $qr_size = ($settings->alt_barcode_enabled=='1') && ($settings->alt_barcode!='')
             @endif
             @if (($asset->_snipeit_zopu_2== 'ZOPU'))
                 <div class="pull-left">
-                    ZOPU
+                    &nbsp;*ZOPU*
                 </div>
+                <br>
             @else
                 <div class="pull-left">
                     <br>
