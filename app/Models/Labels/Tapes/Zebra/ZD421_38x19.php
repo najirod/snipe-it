@@ -7,13 +7,13 @@ class ZD421_38x19 extends ZD421
 {   
     private const BARCODE_SIZE   = 5;
 
-    private const BARCODE_MARGIN =   2;
+    private const BARCODE_MARGIN =   1;
     private const D_margin = 5;
     private const TAG_SIZE       =   5.80;
-    private const TITLE_SIZE     =   2.80;
+    private const TITLE_SIZE     =   2.00;
     private const TITLE_MARGIN   =   0.50;
     private const LABEL_SIZE     =   2.00;
-    private const LABEL_MARGIN   = - 0;
+    private const LABEL_MARGIN   =   0;
     private const FIELD_SIZE     =   2.50;
     private const FIELD_MARGIN   =   0.15;
 
@@ -22,6 +22,8 @@ class ZD421_38x19 extends ZD421
     public function getUnit()  { return 'mm'; }
     public function getWidth() { return 38.1; }
     public function getHeight() { return 19.1; }
+    //public function getMarginLeft() {return 2;}
+    public function getMarginRight() {return 1.5;}
     public function getSupportAssetTag()  { return true; }
     public function getSupport1DBarcode() { return true; }
     public function getSupport2DBarcode() { return true; }
@@ -40,16 +42,17 @@ class ZD421_38x19 extends ZD421
 
         $barcodeSize = $pa->h - self::TAG_SIZE;
 
-	if ($record->has('barcode1d')) {
-            static::write1DBarcode(
-                $pdf, $record->get('barcode1d')->content, $record->get('barcode1d')->type,
-                $pa->x1, $pa->y2 - self::D_margin, $pa->w, self::BARCODE_SIZE
-            );
-        }
+
+        $serial = $record->get('serial');
+
+    	if ($record->has('barcode1d')) {
+                static::write1DBarcode(
+                    $pdf, $record->get('barcode1d')->content, $record->get('barcode1d')->type,
+                    $pa->x1, $pa->y2 - self::D_margin, $pa->w, self::BARCODE_SIZE
+                );
+            }
 
         if ($record->has('barcode2d')) {
-            
-
             static::write2DBarcode(
                 $pdf, $record->get('barcode2d')->content, $record->get('barcode2d')->type,
                 $currentX, $currentY,
@@ -83,14 +86,38 @@ class ZD421_38x19 extends ZD421
             );
             $currentY += self::TITLE_MARGIN + self::LABEL_SIZE;
 
-            static::writeText(
-                $pdf, "S/N: ".$record->get('serial'),
-                $currentX , $currentY,
-                'freesans', 'b', self::LABEL_SIZE, 'L',
-                $usableWidth, self::LABEL_SIZE, true, 0
-            );
-            $currentY += self::TITLE_MARGIN + self::LABEL_SIZE;
+            if (!empty($record->get('serial'))) {
+                if (strlen($serial) > 15) {
+                    $serialPart1 = substr($serial, 0, 15);
+                    $serialPart2 = substr($serial, 15);
 
+                    static::writeText(
+                        $pdf, "S/N: ".$serialPart1,
+                        $currentX , $currentY,
+                        'freesans', 'b', self::LABEL_SIZE, 'L',
+                        $usableWidth, self::LABEL_SIZE, true, 0, 0.2,
+                    );
+                    $currentY += self::TITLE_MARGIN + self::LABEL_SIZE;
+
+                    static::writeText(
+                        $pdf, $serialPart2,
+                        $currentX , $currentY,
+                        'freesans', 'b', self::LABEL_SIZE, 'L',
+                        $usableWidth, self::LABEL_SIZE, true, 0, 0.2,
+                    );
+                    $currentY += self::TITLE_MARGIN + self::LABEL_SIZE;
+                } else {
+                    static::writeText(
+                        $pdf, "S/N: ".$serial,
+                        $currentX , $currentY,
+                        'freesans', 'b', self::LABEL_SIZE, 'L',
+                        $usableWidth, self::LABEL_SIZE, true, 0, 0.2,
+                    );
+
+                    $currentY += self::TITLE_MARGIN + self::LABEL_SIZE;
+                }
+            }
+            
             if (!empty($record->get('os'))) {
             static::writeText(
                 $pdf, "OS: ".$record->get('os'),
@@ -98,13 +125,13 @@ class ZD421_38x19 extends ZD421
                 'freesans', 'b', self::LABEL_SIZE, 'L',
                 $usableWidth, self::LABEL_SIZE, true, 0
             );
-            $currentY += self::TITLE_MARGIN + self::LABEL_SIZE;
+            //$currentY += self::TITLE_MARGIN + self::LABEL_SIZE;
         }
 
             if (!empty($record->get('zopu'))) {
             static::writeText(
                 $pdf, "*".$record->get('zopu')."*",
-                $currentX , $currentY,
+                25 , $currentY,
                 'freesans', 'b', self::LABEL_SIZE, 'L',
                 $usableWidth, self::LABEL_SIZE, true, 0
             );
