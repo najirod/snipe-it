@@ -8,13 +8,13 @@ return array(
     'checkout'  				=> 'ចំនួនអាជ្ញាប័ណ្ណដែលប្រគល់អោយ',
     'edit'  					=> 'កែសម្រួលអាជ្ញាប័ណ្ណ',
     'filetype_info'				=> 'ប្រភេទឯកសារដែលបានអនុញ្ញាតគឺ png, gif, jpg, jpeg, doc, docx, pdf, txt, zip និង rar ។',
-    'clone'  					=> 'Clone License',
+    'clone'  					=> 'អាជ្ញាប័ណ្ណក្លូន',
     'history_for'  				=> 'ប្រវត្តិសម្រាប់ ',
     'in_out'  					=> 'In/Out',
     'info'  					=> 'ព័ត៌មានអាជ្ញាប័ណ្ណ',
     'license_seats'  			=> 'ចំនួនអាជ្ញាប័ណ្ណ',
     'seat'  					=> 'ចំនួន',
-    'seats'  					=> 'Seats',
+    'seats'  					=> 'កៅអី',
     'software_licenses'  		=> 'អាជ្ញាប័ណ្ណកម្មវិធី',
     'user'  					=> 'អ្នក​ប្រើ',
     'view'  					=> 'មើលអាជ្ញាប័ណ្ណ',
@@ -45,4 +45,7 @@ return array(
 
             ],
     ],
+
+    'below_threshold' => 'There are only :remaining_count seats left for this license with a minimum quantity of :min_amt. You may want to consider purchasing more seats.',
+    'below_threshold_short' => 'This item is below the minimum required quantity.',
 );

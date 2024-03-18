@@ -10,6 +10,7 @@ return [
     'create' => [
         'error'   		=> 'Aset tidak dibuat, coba lagi. :(',
         'success' 		=> 'Aset berhasil dibuat. :)',
+        'success_linked' => 'Asset with tag :tag was created successfully. <strong><a href=":link" style="color: white;">Click here to view</a></strong>.',
     ],
 
     'update' => [
@@ -17,12 +18,13 @@ return [
         'success' 			=> 'Aset Berhasil diperbarui.',
         'nothing_updated'	=>  'Tidak ada kategori yang dipilih, jadi tidak ada yang diperbarui.',
         'no_assets_selected'  =>  'No assets were selected, so nothing was updated.',
+        'assets_do_not_exist_or_are_invalid' => 'Selected assets cannot be updated.',
     ],
 
     'restore' => [
         'error'   		=> 'Aset tidak dikembalikan, coba lagi',
         'success' 		=> 'Aset Berhasil dikembalikan.',
-        'bulk_success' 		=> 'Asset restored successfully.',
+        'bulk_success' 		=> 'Aset Berhasil dikembalikan.',
         'nothing_updated'   => 'No assets were selected, so nothing was restored.', 
     ],
 

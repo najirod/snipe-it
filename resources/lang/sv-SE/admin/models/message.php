@@ -2,7 +2,7 @@
 
 return array(
 
-    'deleted' => 'Deleted asset model',
+    'deleted' => 'Raderad tillgångsmodell',
     'does_not_exist' => 'Modellen finns inte.',
     'no_association' => 'VARNING! Modellen för detta objekt är ogiltigt eller saknas!',
     'no_association_fix' => 'Detta kommer att bryta saker på konstiga och hemska sätt. Redigera denna tillgång nu för att tilldela det en modell.',
@@ -34,7 +34,7 @@ return array(
     'bulkedit' => array(
         'error'   		=> 'Inga fält ändrades, så ingenting uppdaterades.',
         'success' 		=> 'Modellen har uppdaterats. |:model_count modeller har uppdaterats.',
-        'warn'          => 'Du håller på att uppdatera egenskaperna för följande modell: | Du håller på att redigera egenskaperna för följande :model_count modeller:',
+        'warn'          => 'Du håller på att uppdatera egenskaperna för följande modell:|Du håller på att redigera egenskaperna för följande :model_count modeller:',
 
     ),
 

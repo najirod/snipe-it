@@ -10,6 +10,7 @@ return [
     'create' => [
         'error'   		=> 'Imovina, resurs nije kreiran, pokušajte ponovo. :(',
         'success' 		=> 'Imovina, resurs uspešno kreiran. :)',
+        'success_linked' => 'Imovina sa oznakom :tag je uspešno napravljena. <strong><a href=":link" style="color: white;">Kliknite ovde za pregled</a></strong>.',
     ],
 
     'update' => [
@@ -17,6 +18,7 @@ return [
         'success' 			=> 'Imovina je uspešno ažurirana.',
         'nothing_updated'	=>  'Nije odabrano nijedno polje, tako da ništa nije ažurirano.',
         'no_assets_selected'  =>  'Nije odabrano nijedno polje, tako da ništa nije ažurirano.',
+        'assets_do_not_exist_or_are_invalid' => 'Izabrana imovina ne može biti izmenjena.',
     ],
 
     'restore' => [

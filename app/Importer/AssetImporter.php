@@ -83,13 +83,13 @@ class AssetImporter extends ItemImporter
             $this->log('No Matching Asset, Creating a new one');
             $asset = new Asset;
         }
-        $this->item['notes'] = $this->findCsvMatch($row, 'asset_notes');
-        $this->item['image'] = $this->findCsvMatch($row, 'image');
-        $this->item['requestable'] = ($this->fetchHumanBoolean($this->findCsvMatch($row, 'requestable')) == 1) ? '1' : 0;
+        $this->item['notes'] = trim($this->findCsvMatch($row, 'asset_notes'));
+        $this->item['image'] = trim($this->findCsvMatch($row, 'image'));
+        $this->item['requestable'] = trim(($this->fetchHumanBoolean($this->findCsvMatch($row, 'requestable'))) == 1) ? '1' : 0;
         $asset->requestable = $this->item['requestable'];
-        $this->item['warranty_months'] = intval($this->findCsvMatch($row, 'warranty_months'));
+        $this->item['warranty_months'] = intval(trim($this->findCsvMatch($row, 'warranty_months')));
         $this->item['model_id'] = $this->createOrFetchAssetModel($row);
-        $this->item['byod'] = ($this->fetchHumanBoolean($this->findCsvMatch($row, 'byod')) == 1) ? '1' : 0;
+        $this->item['byod'] = ($this->fetchHumanBoolean(trim($this->findCsvMatch($row, 'byod'))) == 1) ? '1' : 0;
 
 
         // If no status ID is found
@@ -135,16 +135,16 @@ class AssetImporter extends ItemImporter
                 $asset->{$custom_field} = $val;
             }
         }
-       
+        // This sets an attribute on the Loggable trait for the action log
+        $asset->setImported(true);
         if ($asset->save()) {
 
-            $asset->logCreate(trans('general.importer.import_note'));
             $this->log('Asset '.$this->item['name'].' with serial number '.$this->item['serial'].' was created');
 
             // If we have a target to checkout to, lets do so.
             //-- user_id is a property of the abstract class Importer, which this class inherits from and it's setted by
             //-- the class that needs to use it (command importer or GUI importer inside the project).
-            if (isset($target)) {
+            if (isset($target) && ($target !== false)) {
                 if (!is_null($asset->assigned_to)){
                     if ($asset->assigned_to != $target->id){
                         event(new CheckoutableCheckedIn($asset, User::find($asset->assigned_to), Auth::user(), $asset->notes, date('Y-m-d H:i:s')));

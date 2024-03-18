@@ -38,22 +38,15 @@ class Label implements View
         $settings = $this->data->get('settings');
         $assets = $this->data->get('assets');
         $offset = $this->data->get('offset');
-        $template = $this->data->get('template');
+        $template = LabelModel::find($settings->label2_template);
 
         // If disabled, pass to legacy view
-        if ((!$settings->label2_enable) && (!$template)) {
+        if ((!$settings->label2_enable)) {
             return view('hardware/labels')
                 ->with('assets', $assets)
                 ->with('settings', $settings)
                 ->with('bulkedit', $this->data->get('bulkedit'))
                 ->with('count', $this->data->get('count'));
-        }
-
-        // If a specific template was set, use it, otherwise fall back to default
-        if (empty($template)) {
-            $template = LabelModel::find($settings->label2_template);
-        } elseif (is_string($template)) {
-            $template = LabelModel::find($template);
         }
 
         $template->validate();
@@ -93,13 +86,9 @@ class Label implements View
                 $assetData->put('os', $asset->_snipeit_broj_osnovnog_sredstva_3);
                 $assetData->put('zopu', $asset->_snipeit_zopu_2);
 
-                if ($template->getSupportTitle()) {
-
-                    if ($asset->company && !empty($settings->label2_title)) {
-                        $title = str_replace('{COMPANY}', $asset->company->name, $settings->label2_title);
-                        $settings->qr_text;
-                        $assetData->put('title', $title);
-                    }
+                if ($template->getSupportTitle() && !empty($settings->label2_title)) {
+                    $title = str_replace('{COMPANY}', data_get($asset, 'company.name'), $settings->label2_title);
+                    $assetData->put('title', $title);
                 }
 
                 if ($template->getSupportLogo()) {
@@ -119,16 +108,15 @@ class Label implements View
                     }
                 }
 
-                if ($template->getSupport1DBarcode()) {
-                    $barcode1DType = $settings->label2_1d_type;
-                    $barcode1DType = ($barcode1DType == 'default') ? 
-                        (($settings->alt_barcode_enabled) ? $settings->alt_barcode : null) :
-                        $barcode1DType;
-                    if ($barcode1DType != 'none') {
-                        $assetData->put('barcode1d', (object)[
-                            'type' => $barcode1DType,
-                            'content' => $asset->asset_tag,
-                        ]);
+                if ($settings->alt_barcode_enabled) {
+                    if ($template->getSupport1DBarcode()) {
+                        $barcode1DType = $settings->alt_barcode;
+                        if ($barcode1DType != 'none') {
+                            $assetData->put('barcode1d', (object)[
+                                'type' => $barcode1DType,
+                                'content' => $asset->asset_tag,
+                            ]);
+                        }
                     }
                 }
 
@@ -141,7 +129,7 @@ class Label implements View
                         switch ($settings->label2_2d_target) {
                             case 'ht_tag': $barcode2DTarget = route('ht/assetTag', $asset->asset_tag); break;
                             case 'hardware_id':
-                            default: $barcode2DTarget = route('hardware.show', $asset->id); break;
+                            default: $barcode2DTarget = route('hardware.show', ['hardware' => $asset->id]); break;
                         }
                         $assetData->put('barcode2d', (object)[
                             'type' => $barcode2DType,
@@ -161,7 +149,7 @@ class Label implements View
 
                         return $toAdd ? $myFields->push($toAdd) : $myFields;
                     }, new Collection());
-                    
+
                 $assetData->put('fields', $fields->take($template->getSupportFields()));
 
                 return $assetData;
