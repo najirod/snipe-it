@@ -32,7 +32,7 @@ Form::macro('countries', function ($name = 'country', $selected = null, $class =
 
     $idclause = (!is_null($id)) ? $id : '';
 
-    $select = '<select name="'.$name.'" class="'.$class.'" style="min-width:350px"'.$idclause.' aria-label="'.$name.'" data-placeholder="'.trans('localizations.select_country').'">';
+    $select = '<select name="'.$name.'" class="'.$class.'" style="width:100%" '.$idclause.' aria-label="'.$name.'" data-placeholder="'.trans('localizations.select_country').'">';
     $select .= '<option value=""  role="option">'.trans('localizations.select_country').'</option>';
 
     // Pull the autoglossonym array from the localizations translation file
@@ -43,7 +43,7 @@ Form::macro('countries', function ($name = 'country', $selected = null, $class =
             $abbr = strtoupper($abbr);
         }
 
-        $select .= '<option value="'.$abbr.'"'.($selected == $abbr) ? ' selected="selected" role="option" aria-selected="true"' : ' aria-selected="false"'.'>'.$country.'</option> ';
+        $select .= '<option value="'.$abbr.'"'.(($selected == $abbr) ? ' selected="selected" role="option" aria-selected="true"' : ' aria-selected="false"').'>'.$country.'</option> ';
     }
 
     $select .= '</select>';

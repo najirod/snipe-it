@@ -358,6 +358,10 @@ body {
   white-space: normal;
 }
 
+.bootstrap-table .fixed-table-container .fixed-table-body .fixed-table-loading {
+  z-index: 840 !important;
+}
+
 @media print {
   a[href]:after {
     content: none;
@@ -684,6 +688,12 @@ th.css-accessory > .th-inner::before
   .sidebar-menu {
     margin-top:100px
   }
+  .navbar-custom-menu > .navbar-nav > li.dropdown.user.user-menu {
+    float:right;
+  }
+  .navbar-custom-menu > .navbar-nav > li > .dropdown-menu {
+    margin-right:-39px;
+  }
 }
 
 @media screen and (max-width: 1268px) and (min-width: 912px){
@@ -887,4 +897,7 @@ input[type="radio"]:checked::before {
 
 .separator:not(:empty)::after {
   margin-left: .25em;
+}
+.datepicker.dropdown-menu {
+  z-index: 1030 !important;
 }
