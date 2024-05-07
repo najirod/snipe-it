@@ -359,7 +359,7 @@ body {
 }
 
 .bootstrap-table .fixed-table-container .fixed-table-body .fixed-table-loading {
-  z-index: 840 !important;
+  z-index: 0 !important;
 }
 
 @media print {
@@ -900,4 +900,10 @@ input[type="radio"]:checked::before {
 }
 .datepicker.dropdown-menu {
   z-index: 1030 !important;
+}
+
+.sidebar-menu > li .badge {
+  margin-top: 0px;
+  filter: brightness(70%);
+  font-size: 70%;
 }
