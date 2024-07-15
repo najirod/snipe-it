@@ -6,6 +6,8 @@
 
     <link rel="shortcut icon" type="image/ico" href="{{ ($snipeSettings) && ($snipeSettings->favicon!='') ?  Storage::disk('public')->url(e($snipeSettings->favicon)) : config('app.url').'/favicon.ico' }}">
 
+    <link rel="stylesheet" href="{{ url(mix('css/dist/bootstrap-table.css')) }}">
+
     {{-- stylesheets --}}
     <link rel="stylesheet" href="{{ url(mix('css/dist/all.css')) }}">
 
@@ -149,20 +151,25 @@
 
                         <tr>
                             <td>{{ $counter }}.{{ $assignedCounter }}</td>
-                            <td data-formatter="imageFormatter">
+                            <td>
                                 @if ($asset->getImageUrl())
                                     <img src="{{ $asset->getImageUrl() }}" class="thumbnail" style="max-height: 50px;">
                                 @endif
                             </td>
                             <td>{{ $asset->asset_tag }}</td>
                             <td>{{ $asset->name }}</td>
-                            <td>{{ $asset->model->category->name }}</td>
+                            <td>{{ (($asset->model) && ($asset->model->category)) ? $asset->model->category->name : trans('general.invalid_category') }}</td>
+                            <td>{{ ($asset->model) ? $asset->model->name : trans('general.invalid_model') }}</td>
                             <td>{{ ($asset->defaultLoc) ? $asset->defaultLoc->name : '' }}</td>
                             <td>{{ ($asset->location) ? $asset->location->name : '' }}</td>
-                            <td>{{ $asset->model->name }}</td>
                             <td>{{ $asset->serial }}</td>
-                            <td>{{ $asset->last_checkout }}</td>
-                            <td><img style="width:auto;height:100px;" src="{{ asset('/') }}display-sig/{{ $asset->assetlog->first()->accept_signature }}"></td>
+                            <td>
+                                {{ Helper::getFormattedDateObject($asset->last_checkout, 'datetime', false) }}</td>
+                            <td>
+                                @if (($asset->assetlog->first()) && ($asset->assetlog->first()->accept_signature!=''))
+                                    <img style="width:auto;height:100px;" src="{{ asset('/') }}display-sig/{{ $asset->assetlog->first()->accept_signature }}">
+                                @endif
+                            </td>
                         </tr>
                         @php
                             $assignedCounter++
@@ -386,18 +393,16 @@
 <script src="{{ url(mix('js/dist/all.js')) }}" nonce="{{ csrf_token() }}"></script>
 
 
-@push('css')
-    <link rel="stylesheet" href="{{ url(mix('css/dist/bootstrap-table.css')) }}">
-@endpush
 
-@push('js')
+
+
 
 <script src="{{ url(mix('js/dist/bootstrap-table.js')) }}"></script>
 
 <script>
     $('.snipe-table').bootstrapTable('destroy').each(function () {
-
         console.log('BS table loaded');
+
         data_export_options = $(this).attr('data-export-options');
         export_options = data_export_options ? JSON.parse(data_export_options) : {};
         export_options['htmlContent'] = false; // this is already the default; but let's be explicit about it
@@ -469,7 +474,7 @@
         });
     });
 </script>
-@endpush
+
 
 
 </body>
