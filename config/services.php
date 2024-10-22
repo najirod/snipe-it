@@ -25,6 +25,7 @@ return [
     'mailgun' => [
         'domain' => env('MAILGUN_DOMAIN'),
         'secret' => env('MAILGUN_SECRET'),
+        'endpoint' => env('MAILGUN_ENDPOINT', 'api.mailgun.net'),
     ],
 
     'mandrill' => [
@@ -41,12 +42,6 @@ return [
         'model'  => App\User::class,
         'key'    => env('STRIPE_KEY'),
         'secret' => env('STRIPE_SECRET'),
-    ],
-
-    'baremetrics' => [
-        'enabled' => env('ENABLE_BMPAY', false),
-        'app_key'  => env('BMPAY_PUBLIC_KEY',  null),
-        'stripe_id'    => env('BMPAY_STRIPE_ID', null),
     ],
 
     'google' => [

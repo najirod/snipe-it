@@ -131,6 +131,9 @@ a {
 #ldapad_test_results.well.well-sm{
   color: var(--back-main);
 }
+a.actions {
+  color:#fff !important;
+}
 //pagination
 .pagination > li >a{
   color: var(--light-link);
@@ -178,10 +181,6 @@ h2.task_menu{
 .modal-content {
   background-color: var(--back-main);
   color: var(--text-main);
-}
-
-a:link {
-  color: var(--link);
 }
 
 .btn-primary.hover {
@@ -237,7 +236,6 @@ body {
 }
 .btn-primary:hover {
   background-color: var(--button-primary);
-  color: var(--link)!important;
 }
 #componentsTable>tbody>tr>td>nobr>a>i.fa {
   color: var(--text-main);
@@ -349,7 +347,10 @@ input[type=text], input[type=search] {
   color: var(--text-main);
 }
 .skin-green-dark .main-header .navbar .dropdown-menu li a {
-  color: var(--link);
+  color: #FFFFFF;
+}
+.skin-green-dark .main-header .navbar .dropdown-menu li a:hover {
+  background-color: #006300;
 }
 .fixed-table-body thead th .th-inner, .skin-green-dark .sidebar-menu>li.active>a, .skin-green .sidebar-menu>li:hover>a, .sidebar-toggle:hover {
   background-color: var(--header)!important;
@@ -362,7 +363,7 @@ input[type=text], input[type=search] {
   background-color: var(--back-sub);
 }
 .table-striped>tbody>tr:nth-of-type(even){
-  background-color: var(--back-sub-alt);
+  background-color: var(--back-sub);
 }
 #webui>div>div>div>div>div>table>tbody>tr>td>a>i.fa, .box-body, .box-footer, .box-header {
   color: var(--text-main);
@@ -384,6 +385,12 @@ a {
   &:visited {
     color: var(--visited-link)
   }
+}
+#customFieldsTable a[href*='/models'] {
+  color: var(--back-sub);
+}
+#customFieldsTable a[href*='/fieldsets']{
+  background-color: transparent;
 }
 
 .row-striped {
@@ -424,4 +431,7 @@ a {
 
 .search-highlight, .search-highlight:hover {
   background-color: #e9d15b;
+}
+.table > tbody > tr.warning > td{
+  background-color:var(--back-sub);
 }

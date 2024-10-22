@@ -9,6 +9,7 @@ use Watson\Validating\ValidatingTrait;
 
 class Department extends SnipeModel
 {
+    use CompanyableTrait;
     use HasFactory;
 
     /**
@@ -41,8 +42,10 @@ class Department extends SnipeModel
      * @var array
      */
     protected $fillable = [
-        'user_id',
+        'created_by',
         'name',
+        'phone',
+        'fax',
         'location_id',
         'company_id',
         'manager_id',
@@ -56,7 +59,7 @@ class Department extends SnipeModel
      *
      * @var array
      */
-    protected $searchableAttributes = ['name', 'notes'];
+    protected $searchableAttributes = ['name', 'notes', 'phone', 'fax'];
 
     /**
      * The relations and their attributes that should be included when searching the model.

@@ -5,12 +5,14 @@ namespace App\Http\Controllers\Api;
 use App\Helpers\Helper;
 use App\Http\Controllers\Controller;
 use App\Http\Transformers\AssetsTransformer;
+use App\Http\Transformers\SelectlistTransformer;
 use App\Http\Transformers\StatuslabelsTransformer;
 use App\Models\Asset;
+use App\Models\Setting;
 use App\Models\Statuslabel;
 use Illuminate\Http\Request;
 use App\Http\Transformers\PieChartTransformer;
-use Illuminate\Support\Arr;
+use Illuminate\Http\JsonResponse;
 
 class StatuslabelsController extends Controller
 {
@@ -19,14 +21,21 @@ class StatuslabelsController extends Controller
      *
      * @author [A. Gianotto] [<snipe@snipe.net>]
      * @since [v4.0]
-     * @return \Illuminate\Http\Response
      */
-    public function index(Request $request)
+    public function index(Request $request) : array
     {
         $this->authorize('view', Statuslabel::class);
-        $allowed_columns = ['id', 'name', 'created_at', 'assets_count', 'color', 'notes', 'default_label'];
+        $allowed_columns = [
+            'id',
+            'name',
+            'created_at',
+            'assets_count',
+            'color',
+            'notes',
+            'default_label'
+        ];
 
-        $statuslabels = Statuslabel::withCount('assets as assets_count');
+        $statuslabels = Statuslabel::with('adminuser')->withCount('assets as assets_count');
 
         if ($request->filled('search')) {
             $statuslabels = $statuslabels->TextSearch($request->input('search'));
@@ -51,12 +60,20 @@ class StatuslabelsController extends Controller
         }
 
         // Make sure the offset and limit are actually integers and do not exceed system limits
-        $offset = ($request->input('offset') > $statuslabels->count()) ? $statuslabels->count() : abs($request->input('offset'));
+        $offset = ($request->input('offset') > $statuslabels->count()) ? $statuslabels->count() : app('api_offset_value');
         $limit = app('api_limit_value');
-
         $order = $request->input('order') === 'asc' ? 'asc' : 'desc';
-        $sort = in_array($request->input('sort'), $allowed_columns) ? $request->input('sort') : 'created_at';
-        $statuslabels->orderBy($sort, $order);
+        $sort_override =  $request->input('sort');
+        $column_sort = in_array($sort_override, $allowed_columns) ? $sort_override : 'created_at';
+
+        switch ($sort_override) {
+            case 'created_by':
+                $statuslabels = $statuslabels->OrderByCreatedBy($order);
+                break;
+            default:
+                $statuslabels = $statuslabels->orderBy($column_sort, $order);
+                break;
+        }
 
         $total = $statuslabels->count();
         $statuslabels = $statuslabels->skip($offset)->take($limit)->get();
@@ -71,9 +88,8 @@ class StatuslabelsController extends Controller
      * @author [A. Gianotto] [<snipe@snipe.net>]
      * @since [v4.0]
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(Request $request) : JsonResponse
     {
         $this->authorize('create', Statuslabel::class);
         $request->except('deployable', 'pending', 'archived');
@@ -107,9 +123,8 @@ class StatuslabelsController extends Controller
      * @author [A. Gianotto] [<snipe@snipe.net>]
      * @since [v4.0]
      * @param  int  $id
-     * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show($id) : array
     {
         $this->authorize('view', Statuslabel::class);
         $statuslabel = Statuslabel::findOrFail($id);
@@ -125,9 +140,8 @@ class StatuslabelsController extends Controller
      * @since [v4.0]
      * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
-     * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, $id) : JsonResponse
     {
         $this->authorize('update', Statuslabel::class);
         $statuslabel = Statuslabel::findOrFail($id);
@@ -162,9 +176,8 @@ class StatuslabelsController extends Controller
      * @author [A. Gianotto] [<snipe@snipe.net>]
      * @since [v4.0]
      * @param  int  $id
-     * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy($id) : JsonResponse
     {
         $this->authorize('delete', Statuslabel::class);
         $statuslabel = Statuslabel::findOrFail($id);
@@ -187,13 +200,18 @@ class StatuslabelsController extends Controller
      *
      * @author [A. Gianotto] [<snipe@snipe.net>]
      * @since [v3.0]
-     * @return array
      */
-    public function getAssetCountByStatuslabel()
+    public function getAssetCountByStatuslabel() : array
     {
         $this->authorize('view', Statuslabel::class);
-        $statuslabels = Statuslabel::withCount('assets')->get();
-        $total = Array();
+
+        if (Setting::getSettings()->show_archived_in_list == 0 ) {
+            $statuslabels = Statuslabel::withCount('assets')->where('archived','0')->get();
+        } else {
+            $statuslabels = Statuslabel::withCount('assets')->get();
+        }
+
+        $total = [];
 
         foreach ($statuslabels as $statuslabel) {
 
@@ -214,9 +232,8 @@ class StatuslabelsController extends Controller
      *
      * @author [A. Gianotto] [<snipe@snipe.net>]
      * @since [v6.0.11]
-     * @return array
      */
-    public function getAssetCountByMetaStatus()
+    public function getAssetCountByMetaStatus() : array
     {
         $this->authorize('view', Statuslabel::class);
 
@@ -244,9 +261,8 @@ class StatuslabelsController extends Controller
      * @author [A. Gianotto] [<snipe@snipe.net>]
      * @since [v4.0]
      * @param  int  $id
-     * @return \Illuminate\Http\Response
      */
-    public function assets(Request $request, $id)
+    public function assets(Request $request, $id) : array
     {
         $this->authorize('view', Statuslabel::class);
         $this->authorize('index', Asset::class);
@@ -280,9 +296,8 @@ class StatuslabelsController extends Controller
      *
      * @author [A. Gianotto] [<snipe@snipe.net>]
      * @since [v4.0]
-     * @return bool
      */
-    public function checkIfDeployable($id)
+    public function checkIfDeployable($id) : string
     {
         $statuslabel = Statuslabel::findOrFail($id);
         if ($statuslabel->getStatuslabelType() == 'deployable') {
@@ -290,5 +305,46 @@ class StatuslabelsController extends Controller
         }
 
         return '0';
+    }
+
+    /**
+     * Gets a paginated collection for the select2 menus
+     *
+     * @author [A. Gianotto] [<snipe@snipe.net>]
+     * @since [v6.1.1]
+     * @see \App\Http\Transformers\SelectlistTransformer
+     */
+    public function selectlist(Request $request) : array
+    {
+
+        $this->authorize('view.selectlists');
+        $statuslabels = Statuslabel::orderBy('default_label', 'desc')->orderBy('name', 'asc')->orderBy('deployable', 'desc');
+
+        if ($request->filled('search')) {
+            $statuslabels = $statuslabels->where('name', 'LIKE', '%'.$request->get('search').'%');
+        }
+
+        if ($request->filled('deployable')) {
+            $statuslabels = $statuslabels->where('deployable', '=', '1');
+        }
+
+        if ($request->filled('pending')) {
+            $statuslabels = $statuslabels->where('pending', '=', '1');
+        }
+
+        if ($request->filled('archived')) {
+            $statuslabels = $statuslabels->where('archived', '=', '1');
+        }
+
+        $statuslabels = $statuslabels->orderBy('name', 'ASC')->paginate(50);
+
+        // Loop through and set some custom properties for the transformer to use.
+        // This lets us have more flexibility in special cases like assets, where
+        // they may not have a ->name value but we want to display something anyway
+        foreach ($statuslabels as $statuslabel) {
+            $statuslabels->use_text = $statuslabel->name;
+        }
+
+        return (new SelectlistTransformer)->transformSelectlist($statuslabels);
     }
 }

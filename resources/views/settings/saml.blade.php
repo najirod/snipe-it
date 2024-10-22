@@ -38,7 +38,8 @@
             <div class="panel box box-default">
                 <div class="box-header with-border">
                     <h2 class="box-title">
-                        <i class="fas fa-sign-in-alt"></i> {{ trans('admin/settings/general.saml') }}
+                        <x-icon type="saml"/>
+                         {{ trans('admin/settings/general.saml') }}
                     </h2>
                 </div>
                 <div class="box-body">
@@ -92,9 +93,10 @@
                                     <p class="help-block">
                                         <a href="{{ route('saml.metadata') }}" target="_blank" class="btn btn-default" style="margin-right: 5px;">{{ trans('admin/settings/general.saml_download') }}</a>
                                     </p>
+                                    </div>
                                 @endif
                                 {!! $errors->first('saml_enabled', '<span class="alert-msg" aria-hidden="true">:message</span>') !!}
-                            </div>
+
                         </div>
 
 
@@ -176,7 +178,7 @@
                         <a class="btn btn-link text-left" href="{{ route('settings.index') }}">{{ trans('button.cancel') }}</a>
                     </div>
                     <div class="text-right col-md-6">
-                        <button type="submit" class="btn btn-primary"{{ config('app.lock_passwords') === true ? ' disabled': '' }}><i class="fas fa-check icon-white" aria-hidden="true"></i> {{ trans('general.save') }}</button>
+                        <button type="submit" class="btn btn-primary"{{ config('app.lock_passwords') === true ? ' disabled': '' }}><x-icon type="checkmark" /> {{ trans('general.save') }}</button>
                     </div>
 
                 </div>

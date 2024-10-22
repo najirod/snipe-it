@@ -9,6 +9,14 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Messages\SlackMessage;
 use Illuminate\Notifications\Notification;
+use NotificationChannels\GoogleChat\Card;
+use NotificationChannels\GoogleChat\GoogleChatChannel;
+use NotificationChannels\GoogleChat\GoogleChatMessage;
+use NotificationChannels\GoogleChat\Section;
+use NotificationChannels\GoogleChat\Widgets\KeyValue;
+use NotificationChannels\MicrosoftTeams\MicrosoftTeamsChannel;
+use NotificationChannels\MicrosoftTeams\MicrosoftTeamsMessage;
+use Illuminate\Support\Facades\Log;
 
 class CheckoutConsumableNotification extends Notification
 {
@@ -42,8 +50,17 @@ class CheckoutConsumableNotification extends Notification
     public function via()
     {
         $notifyBy = [];
+        if (Setting::getSettings()->webhook_selected == 'google' && Setting::getSettings()->webhook_endpoint) {
 
-        if (Setting::getSettings()->webhook_endpoint != '') {
+            $notifyBy[] = GoogleChatChannel::class;
+        }
+
+        if (Setting::getSettings()->webhook_selected == 'microsoft' && Setting::getSettings()->webhook_endpoint) {
+
+            $notifyBy[] = MicrosoftTeamsChannel::class;
+        }
+
+        if (Setting::getSettings()->webhook_selected == 'slack' || Setting::getSettings()->webhook_selected == 'general' ) {
             $notifyBy[] = 'slack';
         }
 
@@ -85,6 +102,7 @@ class CheckoutConsumableNotification extends Notification
         $item = $this->item;
         $note = $this->note;
         $botname = ($this->settings->webhook_botname) ? $this->settings->webhook_botname : 'Snipe-Bot';
+        $channel = ($this->settings->webhook_channel) ? $this->settings->webhook_channel : '';
 
         $fields = [
             'To' => '<'.$target->present()->viewUrl().'|'.$target->present()->fullName().'>',
@@ -94,11 +112,58 @@ class CheckoutConsumableNotification extends Notification
         return (new SlackMessage)
             ->content(':arrow_up: :paperclip: Consumable Checked Out')
             ->from($botname)
+            ->to($channel)
             ->attachment(function ($attachment) use ($item, $note, $admin, $fields) {
                 $attachment->title(htmlspecialchars_decode($item->present()->name), $item->present()->viewUrl())
                     ->fields($fields)
                     ->content($note);
             });
+    }
+    public function toMicrosoftTeams()
+    {
+        $target = $this->target;
+        $admin = $this->admin;
+        $item = $this->item;
+        $note = $this->note;
+
+        return MicrosoftTeamsMessage::create()
+            ->to($this->settings->webhook_endpoint)
+            ->type('success')
+            ->addStartGroupToSection('activityTitle')
+            ->title(trans('mail.Consumable_checkout_notification'))
+            ->addStartGroupToSection('activityText')
+            ->fact(htmlspecialchars_decode($item->present()->name), '', 'activityTitle')
+            ->fact(trans('mail.Consumable_checkout_notification')." by ", $admin->present()->fullName())
+            ->fact(trans('mail.assigned_to'), $target->present()->fullName())
+            ->fact(trans('admin/consumables/general.remaining'), $item->numRemaining())
+            ->fact(trans('mail.notes'), $note ?: '');
+    }
+    public function toGoogleChat()
+    {
+        $target = $this->target;
+        $item = $this->item;
+        $note = $this->note;
+
+        return GoogleChatMessage::create()
+            ->to($this->settings->webhook_endpoint)
+            ->card(
+                Card::create()
+                    ->header(
+                        '<strong>'.trans('mail.Consumable_checkout_notification').'</strong>' ?: '',
+                        htmlspecialchars_decode($item->present()->name) ?: '',
+                    )
+                    ->section(
+                        Section::create(
+                            KeyValue::create(
+                                trans('mail.assigned_to') ?: '',
+                                $target->present()->fullName() ?: '',
+                                trans('admin/consumables/general.remaining').': '.$item->numRemaining(),
+                            )
+                                ->onClick(route('users.show', $target->id))
+                        )
+                    )
+            );
+
     }
 
     /**
@@ -108,7 +173,7 @@ class CheckoutConsumableNotification extends Notification
      */
     public function toMail()
     {
-        \Log::debug($this->item->getImageUrl());
+        Log::debug($this->item->getImageUrl());
         $eula = $this->item->getEula();
         $req_accept = $this->item->requireAcceptance();
 

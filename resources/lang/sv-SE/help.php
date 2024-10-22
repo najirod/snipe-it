@@ -15,7 +15,7 @@ return [
 
     'more_info_title' => 'Mer information',
 
-    'audit_help' => 'Checking this box will edit the asset record to reflect this new location. Leaving it unchecked will simply note the location in the audit log.<br><br>Note that if this asset is checked out, it will not change the location of the person, asset or location it is checked out to.',
+    'audit_help' => 'Om du markerar denna ruta kommer tillgången att ändras för att återspegla denna nya plats. Om du lämnar den omarkerad kommer den helt enkelt att notera platsen i revisionsloggen.<br><br>Observera att om denna tillgång är utcheckad, det kommer inte att ändra platsen för personen, tillgång eller plats det checkas ut till.',
 
     'assets' => 'Tillgångar är objekt som spåras med serienummer eller tillgångstagg. De tenderar att vara objekt med högre värde där identifiering av ett visst objekt spelar roll.',
 
@@ -30,5 +30,6 @@ return [
     'consumables'   => 'Förbrukningsvaror är allt som köps som kommer att användas med tiden. Till exempel skrivarbläck eller kopieringspapper.',
 
     'depreciations' => 'Du kan ställa in tillgångsavskrivningar för att avskriva tillgångar baserat på rak linjär avskrivning.',
-
+    
+    'empty_file'    => 'Importören upptäcker att denna fil är tom.'
 ];
