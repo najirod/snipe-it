@@ -82,6 +82,9 @@ class Label implements View
                 $assetData->put('asset', $asset);
                 $assetData->put('id', $asset->id);
                 $assetData->put('tag', $asset->asset_tag);
+                $assetData->put('serial', $asset->serial);
+                $assetData->put('os', $asset->_snipeit_broj_osnovnog_sredstva_3);
+                $assetData->put('zopu', $asset->_snipeit_zopu_2);
 
                 if ($template->getSupportTitle() && !empty($settings->label2_title)) {
                     $title = str_replace('{COMPANY}', data_get($asset, 'company.name'), $settings->label2_title);
