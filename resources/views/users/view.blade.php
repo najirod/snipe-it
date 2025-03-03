@@ -12,7 +12,21 @@
 
 
 <div class="row">
+
+    @if ($user->deleted_at!='')
+        <div class="col-md-12">
+            <div class="callout callout-warning">
+                <x-icon type="warning" />
+                {{ trans('admin/users/message.user_deleted_warning') }}
+            </div>
+        </div>
+    @endif
+
   <div class="col-md-12">
+
+
+
+
     <div class="nav-tabs-custom">
       <ul class="nav nav-tabs hidden-print">
 
@@ -115,27 +129,6 @@
 
 
       @can('update', $user)
-          <li class="dropdown pull-right">
-            <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-              <span class="hidden-xs"><x-icon type="cog" /></span>
-              <span class="hidden-lg hidden-md hidden-xl"><x-icon type="cog" class="fa-2x" /></span>
-              
-              <span class="hidden-xs hidden-sm">
-                {{ trans('button.actions') }}
-              </span>
-              <span class="caret"></span>
-            </a>
-            <ul class="dropdown-menu">
-              <li><a href="{{ route('users.edit', $user->id) }}">{{ trans('admin/users/general.edit') }}</a></li>
-              <li><a href="{{ route('users.clone.show', $user->id) }}">{{ trans('admin/users/general.clone') }}</a></li>
-              @if ((Auth::user()->id !== $user->id) && (!config('app.lock_passwords')) && ($user->deleted_at=='') && ($user->isDeletable()))
-                <li><a href="{{ route('users.destroy', $user->id) }}">{{ trans('button.delete') }}</a></li>
-              @endif
-            </ul>
-          </li>
-        @endcan
-
-        @can('update', \App\Models\User::class)
           <li class="pull-right">
               <a href="#" data-toggle="modal" data-target="#uploadFileModal">
               <span class="hidden-xs"><x-icon type="paperclip" /></span>
@@ -150,15 +143,6 @@
         <div class="tab-pane active" id="details">
           <div class="row">
 
-            
-            @if ($user->deleted_at!='')
-              <div class="col-md-12">
-                <div class="callout callout-warning">
-                    <x-icon type="warning" />
-                  {{ trans('admin/users/message.user_deleted_warning') }}
-                </div>
-              </div>
-            @endif
         <div class="info-stack-container">
             <!-- Start button column -->
             <div class="col-md-3 col-xs-12 col-sm-push-9 info-stack">
@@ -180,7 +164,7 @@
 
               @can('update', $user)
                 <div class="col-md-12">
-                  <a href="{{ route('users.edit', $user->id) }}" style="width: 100%;" class="btn btn-sm btn-warning btn-social hidden-print">
+                  <a href="{{ ($user->deleted_at=='') ? route('users.edit', $user->id) : '#' }}" style="width: 100%;" class="btn btn-sm btn-warning btn-social hidden-print{{ ($user->deleted_at!='') ? ' disabled' : '' }}">
                       <x-icon type="edit" />
                       {{ trans('admin/users/general.edit') }}
                   </a>
@@ -309,10 +293,10 @@
                   <div class="row">
                     <!-- name -->
     
-                      <div class="col-md-3 col-sm-2">
+                      <div class="col-md-3">
                         {{ trans('admin/users/table.name') }}
                       </div>
-                      <div class="col-md-9 col-sm-2">
+                      <div class="col-md-9">
                         {{ $user->present()->fullName() }}
                       </div>
 
@@ -751,7 +735,7 @@
                            {{Helper::formatCurrencyOutput($user->getUserTotalCost()->total_user_cost)}}
 
                            <a id="optional_info" class="text-primary">
-                               <x-icon type="caret-right" id="optional_info_icon" /></i>
+                               <x-icon type="caret-right" id="optional_info_icon" />
                                <strong>{{ trans('admin/hardware/form.optional_infos') }}</strong>
                            </a>
                        </div>
@@ -863,7 +847,7 @@
                   </td>
                   <td class="hidden-print col-md-2">
                     @can('update', $license)
-                      <a href="{{ route('licenses.checkin', array('licenseSeatId'=> $license->pivot->id, 'backto'=>'user')) }}" class="btn btn-primary btn-sm hidden-print">{{ trans('general.checkin') }}</a>
+                      <a href="{{ route('licenses.checkin', $license->pivot->id, ['backto'=>'user']) }}" class="btn btn-primary btn-sm hidden-print">{{ trans('general.checkin') }}</a>
                      @endcan
                   </td>
                 </tr>
@@ -1044,7 +1028,6 @@
                     data-bulk-button-id="#bulkLocationsEditButton"
                     data-bulk-form-id="#locationsBulkForm"
                     data-search="true"
-                    data-show-footer="true"
                     data-side-pagination="server"
                     data-show-columns="true"
                     data-show-fullscreen="true"
@@ -1064,7 +1047,7 @@
 
           <div class="tab-pane" id="managed-users">
 
-              @include('partials.locations-bulk-actions')
+              @include('partials.users-bulk-actions')
 
 
               <table
@@ -1074,10 +1057,9 @@
                       data-pagination="true"
                       data-id-table="managedUsersTable"
                       data-toolbar="#usersBulkEditToolbar"
-                      data-bulk-button-id="#bulkUsersEditButton"
+                      data-bulk-button-id="#bulkUserEditButton"
                       data-bulk-form-id="#usersBulkForm"
                       data-search="true"
-                      data-show-footer="true"
                       data-side-pagination="server"
                       data-show-columns="true"
                       data-show-fullscreen="true"
