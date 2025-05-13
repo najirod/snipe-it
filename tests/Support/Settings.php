@@ -32,11 +32,24 @@ class Settings
             'alert_threshold' => $days,
         ]);
     }
+    public function setAuditWarningDays(int $days): Settings
+    {
+        return $this->update([
+            'audit_warning_days' => $days,
+        ]);
+    }
     public function disableAlertEmail(): Settings
     {
         return $this->update([
             'alert_email' => null,
             'alerts_enabled' => 0,
+        ]);
+    }
+
+    public function disableAdminCC(): Settings
+    {
+        return $this->update([
+            'admin_cc_email' => null,
         ]);
     }
 

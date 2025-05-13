@@ -198,10 +198,9 @@ class UsersController extends Controller
             $userPermissions = Helper::selectedPermissionsArray($permissions, $user->permissions);
             $permissions = $this->filterDisplayable($permissions);
 
-            return view('users/edit', compact('user', 'groups', 'userGroups', 'permissions', 'userPermissions'));
+            return view('users/edit', compact('user', 'groups', 'userGroups', 'permissions', 'userPermissions'))->with('item', $user);
         }
 
-        return redirect()->route('users.index')->with('error', trans('admin/users/message.user_not_found', compact('id')));
     }
 
     /**
@@ -396,13 +395,22 @@ class UsersController extends Controller
         // Make sure the user can view users at all
         $this->authorize('view', User::class);
 
-        $user = User::with('assets', 'assets.model', 'consumables', 'accessories', 'licenses', 'userloc')->withTrashed()->find($user->id);
+        $user = User::with([
+            'consumables',
+            'accessories',
+            'licenses',
+            'userloc',
+        ])
+            ->withTrashed()
+            ->find($user->id);
 
         // Make sure they can view this particular user
         $this->authorize('view', $user);
 
-            $userlog = $user->userlog->load('item');
-            return view('users/view', compact('user', 'userlog'))->with('settings', Setting::getSettings());
+        return view('users/view', [
+            'user' => $user,
+            'settings' => Setting::getSettings(),
+        ]);
     }
 
 
@@ -456,10 +464,10 @@ class UsersController extends Controller
                 ->with('user', $user)
                 ->with('groups', Group::pluck('name', 'id'))
                 ->with('userGroups', $userGroups)
-                ->with('clone_user', $user_to_clone);
+                ->with('clone_user', $user_to_clone)
+                ->with('item', $user);
         }
 
-        return redirect()->route('users.index')->with('error', trans('admin/users/message.user_not_found', compact('id')));
 
     }
 
@@ -586,18 +594,18 @@ class UsersController extends Controller
 
         $user = User::where('id', $id)
             ->with([
-                'assets.assetlog',
-                'assets.assignedAssets.assetlog',
+                'assets.log' => fn($query) => $query->withTrashed()->where('target_type', User::class)->where('target_id', $id)->where('action_type', 'accepted'),
+                'assets.assignedAssets.log' => fn($query) => $query->withTrashed()->where('target_type', User::class)->where('target_id', $id)->where('action_type', 'accepted'),
                 'assets.assignedAssets.defaultLoc',
                 'assets.assignedAssets.location',
                 'assets.assignedAssets.model.category',
                 'assets.defaultLoc',
                 'assets.location',
                 'assets.model.category',
-                'accessories.assetlog',
+                'accessories.log' => fn($query) => $query->withTrashed()->where('target_type', User::class)->where('target_id', $id)->where('action_type', 'accepted'),
                 'accessories.category',
                 'accessories.manufacturer',
-                'consumables.assetlog',
+                'consumables.log' => fn($query) => $query->withTrashed()->where('target_type', User::class)->where('target_id', $id)->where('action_type', 'accepted'),
                 'consumables.category',
                 'consumables.manufacturer',
                 'licenses.category',
