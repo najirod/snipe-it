@@ -426,17 +426,19 @@
                         <div class="col-md-9">
                           @if ($user->groups->count() > 0)
                             @foreach ($user->groups as $group)
-
                               @can('superadmin')
                                   <a href="{{ route('groups.show', $group->id) }}" class="label label-default">{{ $group->name }}</a>
                               @else
                               {{ $group->name }}
                               @endcan
-
                             @endforeach
                           @else
                               --
                           @endif
+
+                              @if ($user->hasIndividualPermissions())
+                                  <span class="text-warning"><x-icon type="warning" /> {{ trans('admin/users/general.individual_override') }}</span>
+                              @endif
                         </div>
                       </div>
 
@@ -947,9 +949,9 @@
                   @foreach ($user->accessories as $accessory)
                   <tr>
                       <td>{{ $accessory->pivot->id }}</td>
-                      <td>{!!$accessory->present()->nameUrl()!!}</td>
+                      <td>{!! $accessory->present()->nameUrl() !!}</td>
                       <td>{{ Helper::getFormattedDateObject($accessory->pivot->created_at, 'datetime',  false) }}</td>
-                      <td>{!! $accessory->pivot->note !!}</td>
+                      <td>{{ $accessory->pivot->note }}</td>
                       <td>
                       {!! Helper::formatCurrencyOutput($accessory->purchase_cost) !!}
                       </td>

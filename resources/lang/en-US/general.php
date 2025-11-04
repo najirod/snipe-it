@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'show_all' => 'Show All',
     '2FA_reset'             => '2FA reset',
     'accessories'			=> 'Accessories',
     'activated'			    => 'Activated',
@@ -349,6 +350,7 @@ return [
     'login_disabled'        => 'Login Disabled',
     'audit_due'             => 'Due for Audit',
     'audit_due_days'        => '{}Assets Due or Overdue for Audit|[1]Assets Due or Overdue for Audit Within a Day|[2,*]Assets Due or Overdue for Audit Within :days Days',
+    'audit_due_days_view_all' => '{}Assets Due or Overdue for Audit|[1]View All Assets Due or Overdue for Audit Within a Day|[2,*]View All Assets Due or Overdue for Audit Within :days Days',
     'checkin_due'           => 'Due for Checkin',
     'checkin_overdue'       => 'Overdue for Checkin',
     'checkin_due_days'      => '{}Due for Checkin|[1]Assets Due for Checkin Within :days Day|[2,*]Assets Due for Checkin Within :days Days',
@@ -389,6 +391,7 @@ return [
     'reminder_checked_out_items' => 'This is a reminder of the items currently checked out to you. If you feel this list is inaccurate (something is missing, or something appears here that you believe you never received), please email :reply_to_name at :reply_to_address.',
     'changed'               => 'Changed',
     'to'                    => 'To',
+    'to_user'               => 'To',
     'report_fields_info'    => '<p>Select the fields you would like to include in your custom report, and click Generate. The file (custom-asset-report-YYYY-mm-dd.csv) will download automatically, and you can open it in Excel.</p>
             <p>If you would like to export only certain assets, use the options below to fine-tune your results.</p>',
     'range'                 => 'Range',
@@ -614,6 +617,8 @@ return [
     'user_managed_passwords_allow' => 'Allow users to manage their own passwords',
     'from' => 'From',
     'by' => 'By',
+    'by_user' => 'By',
+    'ldap_sync_location' => 'Sync All Users to This Location (Optional)',
     'version' => 'Version',
     'build' => 'build',
     'use_cloned_image' => 'Clone image from original',
@@ -627,6 +632,24 @@ return [
 // Add form placeholders here
     'placeholders' => [
         'notes'  => 'Add a note',
+    ],
+
+    'bulk_delete_associations' => [
+        'general_assoc_warning'       => ':item_name still has associated items. Please remove them before deleting this :item.',
+        'assoc_assets'                => ':item_name is currently associated with :asset_count asset(s) and cannot be deleted. Please update your assets to no longer reference this :item and try again.',
+        'asset_models'                => ':item_name is currently associated with :asset_count asset(s) and cannot be deleted. Please update your asset models to no longer reference this :item and try again.',
+        'assoc_maintenances'          => ':item_name is currently associated with :maintenance_count maintenance(s) and cannot be deleted. Please update your maintenances to no longer reference this :item and try again.',
+        'assoc_accessories'           => ':item_name is currently associated with :accessory_count accessory(ies) and cannot be deleted. Please update your accessories to no longer reference this :item and try again.',
+        'assoc_consumables'           => ':item_name is currently associated with :consumable_count consumable(s) and cannot be deleted. Please update your consumables to no longer reference this :item and try again.',
+        'assoc_components'            => ':item_name is currently associated with :component_count component(s) and cannot be deleted. Please update your components to no longer reference this :item and try again.',
+        'assoc_licenses'              => ':item_name is currently associated with :license_count license(s) and cannot be deleted. Please update your licenses to no longer reference this :item and try again.',
+        'assoc_assets_no_count'       => ':item_name is currently associated with other assets and cannot be deleted. Please update your assets to no longer reference this :item and try again.',
+        'asset_models_no_count'       => ':item_name is currently associated with other asset models and cannot be deleted. Please update your assets to no longer reference this :item and try again.',
+        'assoc_maintenances_no_count' => ':item_name is currently associated with other maintenances and cannot be deleted. Please update your maintenances to no longer reference this :item and try again.',
+        'assoc_accessories_no_count'  => ':item_name is currently associated with other accessories and cannot be deleted. Please update your accessories to no longer reference this :item and try again.',
+        'assoc_consumables_no_count'  => ':item_name is currently associated with other consumables and cannot be deleted. Please update your consumables to no longer reference this :item and try again.',
+        'assoc_components_no_count'   => ':item_name is currently associated with other components and cannot be deleted. Please update your components to no longer reference this :item and try again.',
+        'assoc_licenses_no_count'     => ':item_name is currently associated with other licenses and cannot be deleted. Please update your licenses to no longer reference this :item and try again.',
     ],
 
     'breadcrumb_button_actions' => [
