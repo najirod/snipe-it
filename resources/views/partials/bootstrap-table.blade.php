@@ -112,6 +112,8 @@
                 showSearchClearButton: data_with_default('show-search-clear-button', true),
                 sortName: data_with_default('sort-name', 'created_at'),
                 sortOrder: data_with_default('sort-order', 'desc'),
+                fixedColumns: data_with_default('fixed-columns', 'true'),
+                fixedRightNumber: data_with_default('fixed-right-number', '1'),
                 stickyHeader: true,
                 stickyHeaderOffsetLeft: parseInt($('body').css('padding-left'), 10),
                 stickyHeaderOffsetRight: parseInt($('body').css('padding-right'), 10),
@@ -264,7 +266,7 @@
                 window.location.href = '{{ (request()->input('status') == "deleted") ? route('users.index') : route('users.index', ['status' => 'deleted']) }}';
             },
             attributes: {
-                class: '{{ (request()->input('status') == "deleted") ? ' btn-selected text-danger ' : '' }}',
+                class: '{{ (request()->input('status') == "deleted") ? ' btn-selected' : '' }}',
                 title: '{{ (request()->input('status') == "deleted") ? trans('admin/users/table.show_current') : trans('admin/users/table.show_deleted') }}',
 
             }
@@ -368,7 +370,7 @@
                 window.location.href = '{{ (request()->input('status') == "Deleted") ? route('hardware.index') : route('hardware.index', ['status' => 'Deleted']) }}';
             },
             attributes: {
-                class: '{{ (request()->input('status') == "Deleted") ? 'btn-selected text-danger' : '' }}',
+                class: '{{ (request()->input('status') == "Deleted") ? 'btn-selected' : '' }}',
                 title: '{{ (request()->input('status') == "Deleted") ? trans('general.list_all') : trans('general.deleted') }}',
 
             }
@@ -394,14 +396,14 @@
         },
 
         btnShowDeleted: {
-            text: '{{ (request()->input('status') == "deleted") ? trans('admin/users/table.show_current') : trans('admin/users/table.show_deleted') }}',
+            text: '{{ (request()->input('status') == "deleted") ? trans('general.show_current') : trans('general.show_deleted') }}',
             icon: 'fa-solid fa-trash',
             event () {
                 window.location.href = '{{ (request()->input('status') == "deleted") ? route('locations.index') : route('locations.index', ['status' => 'deleted']) }}';
             },
             attributes: {
-                class: '{{ (request()->input('status') == "deleted") ? 'btn-selected text-danger' : '' }}',
-                title: '{{ (request()->input('status') == "deleted") ? trans('admin/users/table.show_current') : trans('admin/users/table.show_deleted') }}',
+                class: '{{ (request()->input('status') == "deleted") ? 'btn-selected' : '' }}',
+                title: '{{ (request()->input('status') == "deleted") ? trans('general.show_current') : trans('general.show_deleted') }}',
 
             }
         },
@@ -554,7 +556,7 @@
                 window.location.href = '{{ (request()->input('status') == "deleted") ? route('manufacturers.index') : route('manufacturers.index', ['status' => 'deleted']) }}';
             },
             attributes: {
-                class: '{{ (request()->input('status') == "deleted") ? 'btn-selected text-danger' : '' }}',
+                class: '{{ (request()->input('status') == "deleted") ? 'btn-selected' : '' }}',
                 title: '{{ (request()->input('status') == "deleted") ? trans('general.list_all') : trans('general.deleted') }}',
 
             }
@@ -706,7 +708,7 @@
                 window.location.href = '{{ (request()->input('status') == "deleted") ? route('models.index') : route('models.index', ['status' => 'deleted']) }}';
             },
             attributes: {
-                class: '{{ (request()->input('status') == "deleted") ? ' btn-selected text-danger' : '' }}',
+                class: '{{ (request()->input('status') == "deleted") ? ' btn-selected' : '' }}',
                 title: '{{ (request()->input('status') == "deleted") ? trans('general.list_all') : trans('general.deleted') }}',
 
             }

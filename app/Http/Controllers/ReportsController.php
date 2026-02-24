@@ -818,7 +818,7 @@ class ReportsController extends Controller
                     }
 
                     if ($request->filled('eol')) {
-                        $row[] = ($asset->purchase_date != '') ? $asset->asset_eol_date : '';
+                        $row[] = ($asset->asset_eol_date != '') ? $asset->asset_eol_date : '';
                     }
 
                     if ($request->filled('warranty')) {
@@ -1228,12 +1228,14 @@ class ReportsController extends Controller
         ];
         $mailable= $lookup[get_class($acceptance->checkoutable)];
 
-        return new $mailable($acceptance->checkoutable,
+        return new $mailable(
+            $acceptance->checkoutable,
             $acceptance->checkedOutTo ?? $acceptance->assignedTo,
             $logItem->adminuser,
             $acceptance,
-            $acceptance->note);
-
+            $acceptance->note,
+            firstTimeSending: false,
+        );
     }
     /**
      * sentAssetAcceptanceReminder
