@@ -181,6 +181,7 @@ class ConsumablePresenter extends Presenter
                 'visible' => true,
                 'formatter' => 'consumablesActionsFormatter',
                 'printIgnore' => true,
+                'class' => 'hidden-print',
             ],
         ];
 
@@ -254,6 +255,6 @@ class ConsumablePresenter extends Presenter
      */
     public function nameUrl()
     {
-        return (string) link_to_route('consumables.show', e($this->name), $this->id);
+        return '<a href="' . route('consumables.show', $this->id) . '">' . e($this->name) . '</a>';
     }
 }

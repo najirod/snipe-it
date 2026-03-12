@@ -20,6 +20,7 @@ class LocationPresenter extends Presenter
                 'formatter' => 'checkboxEnabledFormatter',
                 'titleTooltip' => trans('general.select_all_none'),
                 'printIgnore' => true,
+                'class' => 'hidden-print',
             ], [
                 'field' => 'id',
                 'searchable' => false,
@@ -266,6 +267,8 @@ class LocationPresenter extends Presenter
                 'title' => trans('table.actions'),
                 'visible' => true,
                 'formatter' => 'locationsActionsFormatter',
+                'printIgnore' => true,
+                'class' => 'hidden-print',
             ],
         ];
 
@@ -334,6 +337,7 @@ class LocationPresenter extends Presenter
                 'title' => trans('table.actions'),
                 'formatter' => 'accessoriesInOutFormatter',
                 'printIgnore' => true,
+                'class' => 'hidden-print',
             ],
         ];
 
@@ -347,7 +351,7 @@ class LocationPresenter extends Presenter
     public function nameUrl()
     {
         if (auth()->user()->can('view', ['\App\Models\Location', $this])) {
-            return (string)link_to_route('locations.show', e($this->display_name), $this->id);
+            return '<a href="' . route('locations.show', $this->id) . '">' . e($this->display_name) . '</a>';
         } else {
             return e($this->display_name);
         }

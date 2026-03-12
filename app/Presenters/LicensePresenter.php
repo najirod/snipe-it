@@ -213,6 +213,7 @@ class LicensePresenter extends Presenter
             'title' => trans('table.actions'),
             'formatter' => 'licensesActionsFormatter',
             'printIgnore' => true,
+            'class' => 'hidden-print',
         ];
 
         return json_encode($layout);
@@ -307,6 +308,8 @@ class LicensePresenter extends Presenter
                 'title' => trans('general.checkin').'/'.trans('general.checkout'),
                 'visible' => true,
                 'formatter' => 'licenseSeatInOutFormatter',
+                'printIgnore' => true,
+                'class' => 'hidden-print',
             ],
         ];
 
@@ -320,7 +323,7 @@ class LicensePresenter extends Presenter
     public function nameUrl()
     {
         if (auth()->user()->can('view', ['\App\Models\License', $this])) {
-            return (string)link_to_route('licenses.show', e($this->display_name), $this->id);
+            return '<a href="' . route('licenses.show', $this->id) . '">' . e($this->display_name) . '</a>';
         } else {
             return e($this->display_name);
         }
@@ -334,15 +337,6 @@ class LicensePresenter extends Presenter
     public function fullName()
     {
         return $this->name;
-    }
-
-    /**
-     * Link to this licenses serial
-     * @return string
-     */
-    public function serialUrl()
-    {
-        return (string) link_to('/licenses/'.$this->id, mb_strimwidth($this->serial, 0, 50, '...'));
     }
 
     /**

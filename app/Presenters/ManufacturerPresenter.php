@@ -18,6 +18,8 @@ class ManufacturerPresenter extends Presenter
                 'field'        => 'checkbox',
                 'checkbox'     => true,
                 'titleTooltip' => trans('general.select_all_none'),
+                'printIgnore' => true,
+                'class' => 'hidden-print',
             ],
             [
                 'field' => 'id',
@@ -168,6 +170,7 @@ class ManufacturerPresenter extends Presenter
                 'visible' => true,
                 'formatter' => 'manufacturersActionsFormatter',
                 'printIgnore' => true,
+                'class' => 'hidden-print',
             ],
         ];
 
@@ -181,7 +184,7 @@ class ManufacturerPresenter extends Presenter
     public function nameUrl()
     {
         if (auth()->user()->can('view', ['\App\Models\Manufacturer', $this])) {
-            return (string)link_to_route('manufacturers.show', e($this->display_name), $this->id);
+            return '<a href="' . route('manufacturers.show', $this->id) . '">' . e($this->display_name) . '</a>';
         } else {
             return e($this->display_name);
         }

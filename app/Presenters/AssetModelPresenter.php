@@ -17,6 +17,7 @@ class AssetModelPresenter extends Presenter
                 'checkbox' => true,
                 'titleTooltip' => trans('general.select_all_none'),
                 'printIgnore' => true,
+                'class' => 'hidden-print',
             ],
             [
                 'field' => 'id',
@@ -214,6 +215,7 @@ class AssetModelPresenter extends Presenter
             'title' => trans('table.actions'),
             'formatter' => 'modelsActionsFormatter',
             'printIgnore' => true,
+            'class' => 'hidden-print',
         ];
 
         return json_encode($layout);
@@ -264,7 +266,7 @@ class AssetModelPresenter extends Presenter
      */
     public function nameUrl()
     {
-        return  (string) link_to_route('models.show', $this->name, $this->id);
+        return '<a href="' . route('models.show', $this->id) . '">' . e($this->name) . '</a>';
     }
 
     /**

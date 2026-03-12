@@ -17,6 +17,8 @@ class SupplierPresenter extends Presenter
                 'field'        => 'checkbox',
                 'checkbox'     => true,
                 'titleTooltip' => trans('general.select_all_none'),
+                'printIgnore' => true,
+                'class' => 'hidden-print'
             ],
              [
                 'field' => 'id',
@@ -208,7 +210,7 @@ class SupplierPresenter extends Presenter
     public function nameUrl()
     {
         if (auth()->user()->can('view', ['\App\Models\Supplier', $this])) {
-            return (string)link_to_route('suppliers.show', e($this->display_name), $this->id);
+            return '<a href="' . route('suppliers.show', $this->id) . '">' . e($this->display_name) . '</a>';
         } else {
             return e($this->display_name);
         }
@@ -230,7 +232,7 @@ class SupplierPresenter extends Presenter
     public function viewUrl()
     {
         if (auth()->user()->can('view', ['\App\Models\Supplier', $this])) {
-            return (string)link_to_route('suppliers.show', $this->display_name, $this->id);
+            return '<a href="' . route('suppliers.show', $this->id) . '">' . e($this->display_name) . '</a>';
         } else {
             return e($this->display_name);
         }

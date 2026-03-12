@@ -23,6 +23,7 @@ class AssetPresenter extends Presenter
                 'checkbox' => true,
                 'titleTooltip' => trans('general.select_all_none'),
                 'printIgnore' => true,
+                'class' => 'hidden-print'
             ], [
                 'field' => 'id',
                 'searchable' => false,
@@ -358,6 +359,7 @@ class AssetPresenter extends Presenter
             'visible' => true,
             'formatter' => 'hardwareInOutFormatter',
             'printIgnore' => true,
+            'class' => 'hidden-print',
         ];
 
         $layout[] = [
@@ -368,6 +370,7 @@ class AssetPresenter extends Presenter
             'title' => trans('table.actions'),
             'formatter' => 'hardwareActionsFormatter',
             'printIgnore' => true,
+            'class' => 'hidden-print',
         ];
 
         return json_encode($layout);
@@ -449,7 +452,7 @@ class AssetPresenter extends Presenter
     public function nameUrl()
     {
         if (auth()->user()->can('view', ['\App\Models\Asset', $this])) {
-            return (string)link_to_route('hardware.show', e($this->display_name), $this->id);
+            return '<a href="' . route('hardware.show', $this->id) . '">' . e($this->display_name) . '</a>';
         } else {
             return e($this->display_name);
         }

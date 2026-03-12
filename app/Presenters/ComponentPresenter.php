@@ -186,6 +186,7 @@ class ComponentPresenter extends Presenter
             'title' => trans('table.actions'),
             'formatter' => 'componentsActionsFormatter',
             'printIgnore' => true,
+            'class' => 'hidden-print',
         ];
 
         return json_encode($layout);
@@ -241,6 +242,7 @@ class ComponentPresenter extends Presenter
                 'visible' => true,
                 'formatter' => 'componentsInOutFormatter',
                 'printIgnore' => true,
+                'class' => 'hidden-print',
 
             ],
         ];
@@ -255,7 +257,7 @@ class ComponentPresenter extends Presenter
     public function nameUrl()
     {
         if (auth()->user()->can('view', ['\App\Models\Component', $this])) {
-            return (string)link_to_route('components.show', e($this->display_name), $this->id);
+            return '<a href="' . route('components.show', $this->id) . '">' . e($this->display_name) . '</a>';
         } else {
             return e($this->display_name);
         }

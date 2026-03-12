@@ -152,6 +152,7 @@ class CompanyPresenter extends Presenter
                 'visible' => true,
                 'formatter' => 'companiesActionsFormatter',
                 'printIgnore' => true,
+                'class' => 'hidden-print',
             ],
         ];
 
@@ -165,7 +166,7 @@ class CompanyPresenter extends Presenter
     public function nameUrl()
     {
         if (auth()->user()->can('view', ['\App\Models\Company', $this])) {
-            return (string)link_to_route('companies.show', e($this->display_name), $this->id);
+            return '<a href="' . route('companies.show', $this->id) . '">' . e($this->display_name) . '</a>';
         } else {
             return e($this->display_name);
         }

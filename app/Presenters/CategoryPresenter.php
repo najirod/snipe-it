@@ -18,6 +18,8 @@ class CategoryPresenter extends Presenter
                 'field'        => 'checkbox',
                 'checkbox'     => true,
                 'titleTooltip' => trans('general.select_all_none'),
+                'printIgnore' => true,
+                'class' => 'hidden-print',
             ],
             [
                 'field' => 'id',
@@ -127,6 +129,7 @@ class CategoryPresenter extends Presenter
                 'title' => trans('table.actions'),
 		        'formatter' => 'categoriesActionsFormatter',
                 'printIgnore' => true,
+                'class' => 'hidden-print',
             ],
         ];
 
@@ -140,7 +143,7 @@ class CategoryPresenter extends Presenter
     public function nameUrl()
     {
         if (auth()->user()->can('view', ['\App\Models\Category', $this])) {
-            return (string)link_to_route('categories.show', e($this->display_name), $this->id);
+            return '<a href="' . route('categories.show', $this->id) . '">' . e($this->display_name) . '</a>';
         } else {
             return e($this->display_name);
         }
