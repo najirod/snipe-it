@@ -9,6 +9,7 @@ class LicensePresenter extends Presenter
 {
     /**
      * Json Column Layout for bootstrap table
+     *
      * @return string
      */
     public static function dataTableLayout()
@@ -109,6 +110,14 @@ class LicensePresenter extends Presenter
                 'title' => trans('admin/accessories/general.remaining'),
                 'class' => 'text-right text-padding-number-cell',
                 'footerFormatter' => 'qtySumFormatter',
+            ], [
+                'field' => 'percent_remaining',
+                'searchable' => false,
+                'sortable' => false,
+                'switchable' => true,
+                'title' => '% ' . trans('general.remaining'),
+                'visible' => true,
+                'formatter' => 'progressBarFormatter',
             ], [
                 'field' => 'purchase_date',
                 'searchable' => true,
@@ -221,6 +230,7 @@ class LicensePresenter extends Presenter
 
     /**
      * Json Column Layout for bootstrap table
+     *
      * @return string
      */
     public static function dataTableLayoutSeats()
@@ -233,7 +243,7 @@ class LicensePresenter extends Presenter
                 'switchable' => true,
                 'title' => trans('general.id'),
                 'visible' => false,
-           ],[
+            ], [
                 'field' => 'assigned_user',
                 'searchable' => false,
                 'sortable' => false,
@@ -298,7 +308,7 @@ class LicensePresenter extends Presenter
                 'sortable' => false,
                 'visible' => false,
                 'title' => trans('general.notes'),
-                'formatter' => 'notesFormatter'
+                'formatter' => 'notesFormatter',
             ],
             [
                 'field' => 'checkincheckout',
@@ -316,22 +326,82 @@ class LicensePresenter extends Presenter
         return json_encode($layout);
     }
 
+    public static function dataTableLayoutSeatsCheckedOutToAssets()
+    {
+        $layout = [
+            [
+                'field' => 'id',
+                'searchable' => false,
+                'sortable' => true,
+                'switchable' => true,
+                'title' => trans('general.id'),
+                'visible' => false,
+            ],
+            [
+                'field' => 'license',
+                'searchable' => true,
+                'sortable' => true,
+                'switchable' => false,
+                'title' => trans('general.name'),
+                'formatter' => 'licensesLinkObjFormatter',
+            ],
+            [
+                'field' => 'license.serial',
+                'searchable' => true,
+                'sortable' => true,
+                'title' => trans('admin/licenses/form.license_key'),
+                'formatter' => 'licenseKeyFormatter',
+            ],
+            [
+                'field' => 'expiration_date',
+                'searchable' => false,
+                'sortable' => false,
+                'switchable' => true,
+                'title' => trans('admin/licenses/form.expiration'),
+                'visible' => true,
+            ],
+            [
+                'field' => 'notes',
+                'searchable' => false,
+                'sortable' => false,
+                'visible' => false,
+                'title' => trans('general.notes'),
+                'formatter' => 'notesFormatter',
+            ],
+            [
+                'field' => 'checkincheckout',
+                'searchable' => false,
+                'sortable' => false,
+                'switchable' => false,
+                'title' => trans('general.checkin'),
+                'visible' => true,
+                'formatter' => 'licenseSeatInOutFormatter',
+                'printIgnore' => true,
+                'class' => 'hidden-print',
+            ],
+        ];
+
+        return json_encode($layout);
+    }
+
     /**
      * Link to this licenses Name
+     *
      * @return string
      */
     public function nameUrl()
     {
         if (auth()->user()->can('view', ['\App\Models\License', $this])) {
-            return '<a href="' . route('licenses.show', $this->id) . '">' . e($this->display_name) . '</a>';
+            return '<a href="'.route('licenses.show', $this->id).'">'.e($this->display_name).'</a>';
         } else {
             return e($this->display_name);
         }
-        
+
     }
 
     /**
      * Link to this licenses Name
+     *
      * @return string
      */
     public function fullName()
@@ -341,6 +411,7 @@ class LicensePresenter extends Presenter
 
     /**
      * Url to view this item.
+     *
      * @return string
      */
     public function viewUrl()

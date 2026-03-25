@@ -111,6 +111,15 @@ class AssetModelPresenter extends Presenter
                 'footerFormatter' => 'qtySumFormatter',
             ],
             [
+                'field' => 'percent_remaining',
+                'searchable' => false,
+                'sortable' => false,
+                'switchable' => true,
+                'title' => '% ' . trans('general.remaining'),
+                'visible' => true,
+                'formatter' => 'progressBarFormatter',
+            ],
+            [
                 'field' => 'assets_archived_count',
                 'searchable' => false,
                 'sortable' => true,
@@ -223,6 +232,7 @@ class AssetModelPresenter extends Presenter
 
     /**
      * Formatted note for this model
+     *
      * @return string
      */
     public function note()
@@ -243,6 +253,7 @@ class AssetModelPresenter extends Presenter
 
     /**
      * Pretty name for this model
+     *
      * @return string
      */
     public function modelName()
@@ -262,15 +273,17 @@ class AssetModelPresenter extends Presenter
 
     /**
      * Standard url for use to view page.
+     *
      * @return string
      */
     public function nameUrl()
     {
-        return '<a href="' . route('models.show', $this->id) . '">' . e($this->name) . '</a>';
+        return '<a href="'.route('models.show', $this->id).'">'.e($this->name).'</a>';
     }
 
     /**
      * Generate img tag to this models image.
+     *
      * @return string
      */
     public function imageUrl()
@@ -284,6 +297,7 @@ class AssetModelPresenter extends Presenter
 
     /**
      * Generate img tag to this models image.
+     *
      * @return string
      */
     public function imageSrc()
@@ -297,6 +311,7 @@ class AssetModelPresenter extends Presenter
 
     /**
      * Url to view this item.
+     *
      * @return string
      */
     public function viewUrl()
@@ -304,12 +319,13 @@ class AssetModelPresenter extends Presenter
         return route('models.show', $this->id);
     }
 
-    public function formattedNameLink() {
+    public function formattedNameLink()
+    {
 
         if (auth()->user()->can('view', ['\App\Models\AssetModel', $this])) {
-            return '<a href="'.route('models.show', e($this->id)).'" class="'. (($this->deleted_at!='') ? 'deleted' : '').'">'.e($this->display_name).'</a>';
+            return '<a href="'.route('models.show', e($this->id)).'" class="'.(($this->deleted_at != '') ? 'deleted' : '').'">'.e($this->display_name).'</a>';
         }
 
-        return '<span class="'. (($this->deleted_at!='') ? 'deleted' : '').'">'.e($this->display_name).'</span>';
+        return '<span class="'.(($this->deleted_at != '') ? 'deleted' : '').'">'.e($this->display_name).'</span>';
     }
 }

@@ -9,6 +9,7 @@ class ConsumablePresenter extends Presenter
 {
     /**
      * Json Column Layout for bootstrap table
+     *
      * @return string
      */
     public static function dataTableLayout()
@@ -123,12 +124,21 @@ class ConsumablePresenter extends Presenter
                 'class' => 'text-right text-padding-number-cell',
                 'footerFormatter' => 'qtySumFormatter',
             ], [
+                'field' => 'percent_remaining',
+                'searchable' => false,
+                'sortable' => false,
+                'switchable' => true,
+                'title' => '% ' . trans('general.remaining'),
+                'visible' => true,
+                'formatter' => 'progressBarFormatter',
+            ], [
                 'field' => 'purchase_cost',
                 'searchable' => true,
                 'sortable' => true,
                 'title' => trans('general.unit_cost'),
                 'visible' => true,
                 'class' => 'text-right text-padding-number-cell',
+                'footerFormatter' => 'sumFormatter',
             ], [
                 'field' => 'total_cost',
                 'searchable' => true,
@@ -150,7 +160,7 @@ class ConsumablePresenter extends Presenter
                 'title' => trans('general.created_by'),
                 'visible' => false,
                 'formatter' => 'usersLinkObjFormatter',
-            ],[
+            ], [
                 'field' => 'created_at',
                 'searchable' => false,
                 'sortable' => true,
@@ -234,7 +244,6 @@ class ConsumablePresenter extends Presenter
                 'formatter' => 'usersLinkObjFormatter',
             ],
 
-
         ];
 
         return json_encode($layout);
@@ -242,6 +251,7 @@ class ConsumablePresenter extends Presenter
 
     /**
      * Url to view this item.
+     *
      * @return string
      */
     public function viewUrl()
@@ -251,10 +261,11 @@ class ConsumablePresenter extends Presenter
 
     /**
      * Generate html link to this items name.
+     *
      * @return string
      */
     public function nameUrl()
     {
-        return '<a href="' . route('consumables.show', $this->id) . '">' . e($this->name) . '</a>';
+        return '<a href="'.route('consumables.show', $this->id).'">'.e($this->name).'</a>';
     }
 }

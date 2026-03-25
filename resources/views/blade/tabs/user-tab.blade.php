@@ -1,14 +1,13 @@
 @props([
     'count' => null,
-    'class' => false,
+    'name' => 'users',
 ])
 @aware(['class'])
 
 @can('view', \App\Models\User::class)
     <x-tabs.nav-item
-            :$class
-            name="users"
-            icon_type="user"
+        name="{{ $name }}"
+            icon_type="users"
             label="{{ trans('general.users') }}"
             count="{{ $count }}"
             tooltip="{{ trans('general.users') }}"
