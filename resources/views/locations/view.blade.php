@@ -32,6 +32,19 @@
           <x-tabs>
 
               <x-slot:tabnav>
+
+                  @can('view', \App\Models\User::class)
+                      <x-tabs.nav-item
+                          class="active"
+                          name="users"
+                          icon="fa-solid fa-house-user fa-fw"
+                          label="{{ trans('general.users') }}"
+                          count="{{ $location->users()->count() }}"
+                          tooltip="{{ trans('general.users') }}"
+                      />
+                  @endcan
+
+
                   <x-tabs.asset-tab count="{{ $location->assets()->AssetsForShow()->count() }}"/>
 
                   @can('view', \App\Models\Asset::class)
@@ -94,9 +107,9 @@
                           tooltip="{{ trans('general.child_locations') }}"
                   />
 
-                  <x-tabs.files-tab count="{{ $location->uploads()->count() }}"/>
-                  <x-tabs.history-tab count="{{ $location->history()->count() }}" :model="$location"/>
-                  <x-tabs.upload-tab count="{{ $location->uploads()->count() }}" :item="$location"/>
+                      <x-tabs.files-tab :item="$location" count="{{ $location->uploads()->count() }}"/>
+                      <x-tabs.history-tab count="{{ $location->history()->count() }}" :model="$location"/>
+                      <x-tabs.upload-tab :item="$location"/>
 
               </x-slot:tabnav>
 
@@ -225,17 +238,14 @@
         </x-page-column>
     </x-container>
 
-@stop
+@endsection
 
-@can('update', Location::class)
-    @section('moar_scripts')
-       @include ('modals.upload-file', ['item_type' => 'locations', 'item_id' => $location->id])
-    @endsection
-@endcan
 
-@include ('partials.bootstrap-table', [
-'exportFile' => 'locations-export',
-'search' => true
-])
+@section('moar_scripts')
+    @can('files', $location)
+        @include ('modals.upload-file', ['item_type' => 'locations', 'item_id' => $location->id])
+    @endcan
 
+    @include ('partials.bootstrap-table')
+@endsection
 
