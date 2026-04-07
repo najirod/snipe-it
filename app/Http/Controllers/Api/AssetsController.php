@@ -127,9 +127,9 @@ class AssetsController extends Controller
             'location',
             'rtd_location',
             'category',
-            'status_label',
             'manufacturer',
             'supplier',
+            'status',
             'jobtitle',
             'assigned_to',
             'created_by',
@@ -171,17 +171,6 @@ class AssetsController extends Controller
         if ($filter_non_deprecable_assets) {
             $non_deprecable_models = AssetModel::select('id')->whereNotNull('depreciation_id')->get();
             $assets->InModelList($non_deprecable_models->toArray());
-        }
-
-        // These are used by the API to query against specific ID numbers.
-        // They are also used by the individual searches on detail pages like
-        // locations, etc.
-
-        // Search custom fields by column name
-        foreach ($all_custom_fields as $field) {
-            if ($request->filled($field->db_column_name()) && $field->db_column_name()) {
-                $assets->where('assets.'.$field->db_column_name(), '=', $request->input($field->db_column_name()));
-            }
         }
 
         // This invokes the Searchable model trait scopeTextSearch and will handle input by search or by advanced search filter
@@ -232,7 +221,7 @@ class AssetsController extends Controller
         // We switched from using query scopes here because of a Laravel bug
         // related to fulltext searches on complex queries.
         // I am sad. :(
-        switch ($request->input('status')) {
+        switch ($request->input('status_type')) {
             case 'Deleted':
                 $assets->onlyTrashed();
                 break;
@@ -404,7 +393,7 @@ class AssetsController extends Controller
             case 'rtd_location':
                 $assets->OrderRtdLocation($order);
                 break;
-            case 'status_label':
+            case 'status':
                 $assets->OrderStatus($order);
                 break;
             case 'supplier':
@@ -1445,7 +1434,11 @@ class AssetsController extends Controller
     {
         $this->authorize('history', $asset);
         $history = $asset->getHistory($request);
+        $total = $asset->getHistory($request)->count();
+        $offset = ($request->input('offset') > $total) ? $total : app('api_offset_value');
+        $limit = app('api_limit_value');
+        $history = $history->skip($offset)->take($limit)->get();
 
-        return response()->json((new ActionlogsTransformer)->transformActionlogs($history, $history->count()), 200, ['Content-Type' => 'application/json;charset=utf8'], JSON_UNESCAPED_UNICODE);
+        return response()->json((new ActionlogsTransformer)->transformActionlogs($history, $total), 200, ['Content-Type' => 'application/json;charset=utf8'], JSON_UNESCAPED_UNICODE);
     }
 }

@@ -67,50 +67,47 @@ trait Loggable
             'action_date',
         ];
 
-        $history = $this->with('item', 'user', 'adminuser', 'target', 'location', 'history');
+        // Start with the polymorphic history relation so all filters and
+        // ordering are applied to the same query instance.
+        $history = $this->history();
 
         if ($request->filled('search')) {
-            $history = $this->history()->TextSearch(e($request->input('search')));
+            $history = $history->TextSearch(e($request->input('search')));
         }
 
         if ($request->filled('action_type')) {
-            $history = $this->history()->where('action_type', '=', $request->input('action_type'));
+            $history = $history->where('action_type', '=', $request->input('action_type'));
         }
 
         if ($request->filled('created_by')) {
-            $history = $this->history()->where('created_by', '=', $request->input('created_by'));
+            $history = $history->where('created_by', '=', $request->input('created_by'));
         }
 
         if ($request->filled('action_source')) {
-            $history = $this->history()->where('action_source', '=', $request->input('action_source'));
+            $history = $history->where('action_source', '=', $request->input('action_source'));
         }
 
         if ($request->filled('remote_ip')) {
-            $history = $this->history()->where('remote_ip', '=', $request->input('remote_ip'));
+            $history = $history->where('remote_ip', '=', $request->input('remote_ip'));
         }
 
         if ($request->filled('uploads')) {
-            $history = $this->history()->whereNotNull('filename');
+            $history = $history->whereNotNull('filename');
         }
-
-        $total = $this->history()->count();
-        // Make sure the offset and limit are actually integers and do not exceed system limits
-        $offset = ($request->input('offset') > $total) ? $total : app('api_offset_value');
-        $limit = app('api_limit_value');
 
         $order = ($request->input('order') == 'asc') ? 'asc' : 'desc';
 
         switch ($request->input('sort')) {
             case 'created_by':
-                $this->history()->OrderByCreatedBy($order);
+                $history = $history->OrderByCreatedBy($order);
                 break;
             default:
                 $sort = in_array($request->input('sort'), $allowed_columns) ? e($request->input('sort')) : 'action_logs.created_at';
-                $history = $this->history()->orderBy($sort, $order);
+                $history = $history->orderBy($sort, $order);
                 break;
         }
 
-        return $history->skip($offset)->take($limit)->get();
+        return $history;
 
     }
 
