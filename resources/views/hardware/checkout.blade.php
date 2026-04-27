@@ -101,6 +101,23 @@
                             </div>
                         </div>
 
+                        @if ($asset->requestable)
+                            <div class="form-group">
+                                <div class="col-md-7 col-md-offset-3">
+                                    <label class="form-control" for="set_not_requestable">
+                                        <input
+                                            type="checkbox"
+                                            value="1"
+                                            name="set_not_requestable"
+                                            id="set_not_requestable"
+                                            @checked((bool) old('set_not_requestable', true))
+                                        >
+                                        {{ trans('admin/hardware/general.not_requestable') }}
+                                    </label>
+                                </div>
+                            </div>
+                        @endif
+
                         @include ('partials.forms.checkout-selector', ['user_select' => 'true','asset_select' => 'true', 'location_select' => 'true'])
                         @include ('partials.forms.edit.user-select', ['translated_name' => trans('general.user'), 'fieldname' => 'assigned_user', 'style' => (session('checkout_to_type') ?: 'user') == 'user' ? '' : 'display: none;'])
                         <!-- We have to pass unselect here so that we don't default to the asset that's being checked out. We want that asset to be pre-selected everywhere else. -->
@@ -167,21 +184,26 @@
 
 
 
-                        @if ($asset->requireAcceptance() || $asset->getEula() || ($snipeSettings->webhook_endpoint!=''))
-                            <div class="row">
-                            <div class="notification-callout">
+                        @if ($asset->requireAcceptance() || (string) $snipeSettings->require_accept_signature === '1' || $asset->getEula() || ($snipeSettings->webhook_endpoint!=''))
+                            <div class="form-group notification-callout" style="display:none;">
                                 <div class="col-md-8 col-md-offset-3">
                                     <div class="callout callout-info">
 
                                         @if ($asset->requireAcceptance())
-                                            <x-icon type="email" />
+                                            <x-icon type="email"/>
                                             {{ trans('admin/categories/general.required_acceptance') }}
                                             <br>
                                         @endif
 
                                         @if ($asset->getEula())
-                                            <x-icon type="email" />
+                                            <x-icon type="email"/>
                                             {{ trans('admin/categories/general.required_eula') }}
+                                            <br>
+                                        @endif
+
+                                        @if (($asset->model?->category) && ($asset->model->category->checkin_email))
+                                            <x-icon type="email"/>
+                                            {{ trans('admin/categories/general.checkin_email_notification') }}
                                             <br>
                                         @endif
 
@@ -191,9 +213,22 @@
                                         @endif
                                     </div>
                                 </div>
-                            </div>
+
+                                <!-- Sign in place checkbox -->
+                                @if ($asset->requireAcceptance() || (string) $snipeSettings->require_accept_signature === '1')
+                                <div id="sign_in_place_div" class="col-md-7 col-md-offset-3">
+                                    <label class="form-control">
+                                        <input type="checkbox" value="1" name="sign_in_place" @checked(old('sign_in_place', session('sign_in_place', false))) aria-label="sign_in_place">
+                                        {{ trans('general.sign_in_place') }}
+                                    </label>
+                                    <p class="help-block">
+                                        {{ trans('general.sign_in_place_help') }}
+                                    </p>
+                                </div>
+                                @endif
                             </div>
                         @endif
+
 
                     </div> <!--/.box-body-->
 
