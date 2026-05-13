@@ -182,6 +182,44 @@ class User extends SnipeModel implements AuthenticatableContract, AuthorizableCo
     ];
 
     /**
+     * Virtual column aliases that map a single filter key to a set of real columns
+     * searched via CONCAT (SQL) so that, for example, filtering by "name" searches
+     * across both first_name and last_name together.
+     *
+     * Because "name" is not a real column on the users table we cannot add it to
+     * $searchableAttributes; this map bridges that gap for structured filter queries.
+     *
+     * @var array<string, list<string>>
+     */
+    protected $searchableVirtualColumns = [
+        'name' => ['first_name', 'last_name'],
+    ];
+
+    /**
+     * Maps filter/API keys to the actual Eloquent relation names used in
+     * $searchableRelations.  The User model uses "userloc" as its location
+     * relation name (to avoid a collision with the framework's own "location"
+     * magic), but every consumer — UI and API alike — sends the key "location".
+     *
+     * @var array<string, string>
+     */
+    protected $searchableRelationAliases = [
+        'location' => 'userloc',
+    ];
+
+    /**
+     * Narrow structured-filter relation columns for specific UI/API filter keys.
+     *
+     * The advanced-search "location" field represents the location name, so
+     * structured filters should target only userloc.name (not address/city/etc).
+     *
+     * @var array<string, list<string>>
+     */
+    protected $searchableRelationFilterColumns = [
+        'location' => ['name'],
+    ];
+
+    /**
      * This sets the name property on the user. It's not a real field in the database
      * (since we use first_name and last_name), but the Laravel mailable method
      * uses this to determine the name of the user to send emails to.
@@ -686,6 +724,10 @@ class User extends SnipeModel implements AuthenticatableContract, AuthorizableCo
     public function licenses()
     {
         return $this->belongsToMany(License::class, 'license_seats', 'assigned_to', 'license_id')->withPivot('id', 'created_at', 'updated_at');
+    }
+    public function directLicenses()
+    {
+        return $this->belongsToMany(\App\Models\License::class, 'license_seats', 'assigned_to', 'license_id')->withPivot('id', 'created_at', 'updated_at')->wherePivotNull('asset_id')->withTrashed();
     }
 
     /**
@@ -1351,7 +1393,47 @@ class User extends SnipeModel implements AuthenticatableContract, AuthorizableCo
             ->orwhereRaw('CONCAT(users.first_name," ",users.last_name) LIKE \''.$search.'%\'');
 
     }
-
+    public function scopeWithInventoryRelations($query, int $id)
+    {
+        return $query->where('id', $id)
+            ->with([
+                'assets.log' => fn ($query) => $query->withTrashed()
+                    ->where('target_type', User::class)
+                    ->where('target_id', $id)
+                    ->where('action_type', 'accepted'),
+                'assets.defaultLoc',
+                'assets.location',
+                'assets.model.category',
+                'assets.assignedAssets.log' => fn ($query) => $query->withTrashed()
+                    ->where('target_type', User::class)
+                    ->where('target_id', $id)
+                    ->where('action_type', 'accepted'),
+                'assets.assignedAssets.assignedTo',
+                'assets.assignedAssets.defaultLoc',
+                'assets.assignedAssets.location',
+                'assets.assignedAssets.model.category',
+                'assets.components.category',
+                'assets.licenses',
+                'assets.licenses.category',
+                'assets.assignedAccessories',
+                'assets.assignedAccessories.accessory.category',
+                'accessories.log' => fn ($query) => $query->withTrashed()
+                    ->where('target_type', User::class)
+                    ->where('target_id', $id)
+                    ->where('action_type', 'accepted'),
+                'accessories.category',
+                'accessories.manufacturer',
+                'consumables.log' => fn ($query) => $query->withTrashed()
+                    ->where('target_type', User::class)
+                    ->where('target_id', $id)
+                    ->where('action_type', 'accepted'),
+                'consumables.category',
+                'consumables.manufacturer',
+                'directLicenses.category',
+                'licenses.category',
+            ])
+            ->withTrashed();
+    }
     /**
      * Get all direct and indirect subordinates for this user.
      *
