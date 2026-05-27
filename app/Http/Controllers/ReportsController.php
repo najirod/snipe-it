@@ -424,7 +424,7 @@ class ReportsController extends Controller
             $row[] = $license->remaincount();
             $row[] = $license->expiration_date;
             $row[] = $license->purchase_date;
-            $row[] = ($license->depreciation != '') ? '' : e($license->depreciation->name);
+            $row[] = ($license->depreciation != '') ? e($license->depreciation->name) : '';
             $row[] = '"'.Helper::formatCurrencyOutput($license->purchase_cost).'"';
 
             $rows[] = implode(',', $row);
@@ -1236,6 +1236,9 @@ class ReportsController extends Controller
     public function getAssetAcceptanceReport($deleted = false): View
     {
         $this->authorize('reports.view');
+
+        $this->disableDebugbar();
+
         $showDeleted = $deleted == 'deleted';
 
         $query = CheckoutAcceptance::Pending()
