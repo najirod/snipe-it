@@ -372,7 +372,7 @@ class AssetsController extends Controller
         }
 
         foreach ($all_custom_fields as $field) {
-            if ($request->filled($field->db_column_name())) {
+            if ($field->db_column_name() && $request->filled($field->db_column_name())) {
                 $assets->where($field->db_column_name(), '=', $request->input($field->db_column_name()));
             }
         }
@@ -423,6 +423,9 @@ class AssetsController extends Controller
                 break;
             case 'created_by':
                 $assets->OrderByCreatedByName($order);
+                break;
+            case 'eol':
+                $assets->orderBy('assets.asset_eol_date', $order);
                 break;
             default:
                 $numeric_sort = false;
@@ -713,6 +716,8 @@ class AssetsController extends Controller
                         } else {
                             $field_val = Crypt::encrypt($request->input($field->db_column));
                         }
+                    } else {
+                        continue;
                     }
                 }
                 if ($field->element == 'checkbox') {
@@ -913,21 +918,7 @@ class AssetsController extends Controller
 
     private function checkoutCompanyMismatchResponse(Asset $asset, User|Asset|Location $target): ?JsonResponse
     {
-        if (Setting::getSettings()->full_multiple_companies_support != '1' || is_null($asset->company_id)) {
-            return null;
-        }
-
-        // For users with multiple companies, check all their associated companies,
-        // not just the primary company_id column.
-        if ($target instanceof User) {
-            if (! $target->canReceiveFromCompany((int) $asset->company_id)) {
-                return response()->json(Helper::formatStandardApiResponse('error', null, trans('general.error_user_company')));
-            }
-
-            return null;
-        }
-
-        if (! is_null($target->company_id) && (int) $asset->company_id !== (int) $target->company_id) {
+        if (! $asset->canCheckoutTo($target)) {
             return response()->json(Helper::formatStandardApiResponse('error', null, trans('general.error_user_company')));
         }
 
