@@ -945,8 +945,34 @@ $(document).ready(function () {
  * 3. Add an attribute called 'data-livewire-component' that points to $this->getId() (via `{{ }}` if you're in a blade,
  *    or just $this->getId() if not).
  */
+// Any livewire-select2 that lives inside a Bootstrap 3 modal has to be
+// initialized with dropdownParent set to the modal, or the search input
+// gets appended to <body> where Bootstrap 3's modal enforceFocus handler
+// immediately steals focus away from it - the dropdown opens, the search
+// field renders, but typing does nothing because focus keeps snapping
+// back into the modal on every keydown. Elements not in a modal get a
+// plain init. Callers with fussier requirements (custom width, template,
+// etc.) can still init select2 manually; this handler only touches
+// elements that don't already have select2 wired up (guarded by the
+// .select2-hidden-accessible class select2 adds after init).
+function initLivewireSelect2($scope) {
+    var $root = $scope && $scope.length ? $scope : $(document);
+    $root.find('.livewire-select2').each(function () {
+        var $el = $(this);
+        if ($el.hasClass('select2-hidden-accessible')) {
+            return;
+        }
+        var opts = {};
+        var $modal = $el.closest('.modal');
+        if ($modal.length) {
+            opts.dropdownParent = $modal;
+        }
+        $el.select2(opts);
+    });
+}
+
 document.addEventListener('livewire:init', () => {
-    $('.livewire-select2').select2()
+    initLivewireSelect2();
 
     $(document).on('select2:select', '.livewire-select2', function (event) {
         var target = $(event.target)
@@ -965,9 +991,13 @@ document.addEventListener('livewire:init', () => {
 
   Livewire.interceptMessage(({ onFinish }) => {
     onFinish(() => {
-      // Runs after DOM morph completes (or on error/cancel)
+      // Runs after DOM morph completes (or on error/cancel). Livewire
+      // replaces the plain <select> nodes on morph, so a re-init picks
+      // up any that lost their select2 wrapper in the swap. The
+      // already-init guard inside initLivewireSelect2 keeps unchanged
+      // elements untouched.
         queueMicrotask(() => {
-          $(".livewire-select2").select2();
+          initLivewireSelect2();
         });
       });
     }
@@ -1300,6 +1330,37 @@ $(function () {
         var scope = $master.data('check-scope');
         var $container = scope ? $(scope) : $master.closest('form, table');
         $container.find('input[type="checkbox"]').not($master).not(':disabled').prop('checked', $master.prop('checked'));
+    });
+
+    // Custom-report "save template" flow. The three custom reports
+    // (asset / component / consumable) each have a small side-panel
+    // form that captures a template name and posts to the templates
+    // store endpoint carrying the current field selections of the
+    // report configuration form. This handler forwards the template
+    // name + report type into the main report form as hidden inputs,
+    // then submits the main form to templates.store. Report type comes
+    // from the save form's data-report-type attribute so a single JS
+    // path covers all three pages.
+    $(document).on('submit', 'form[data-report-save-template]', function (event) {
+        event.preventDefault();
+        var $saveForm = $(this);
+        var reportType = $saveForm.data('report-type');
+        var targetSelector = $saveForm.data('report-form') || '#custom-report-form';
+        var storeUrl = $saveForm.data('store-url') || $saveForm.attr('action');
+        var $targetForm = $(targetSelector);
+        var nameValue = $saveForm.find('[name="name"]').val();
+
+        $('<input>').attr({ type: 'hidden', name: 'name', value: nameValue }).appendTo($targetForm);
+        $('<input>').attr({ type: 'hidden', name: 'type', value: reportType }).appendTo($targetForm);
+
+        $targetForm.attr('action', storeUrl).submit();
+    });
+
+    // Custom-report saved-template select2: navigate to the route stored
+    // on the selected <option>'s data-route attribute. Shared by all
+    // three custom report pages.
+    $(document).on('select2:select', '#saved_report_select', function (event) {
+        window.location.href = event.params.data.element.dataset.route;
     });
 
     // When the "This user can login" (activated) checkbox is off, the
