@@ -60,7 +60,7 @@
                     <x-form.checkbox-row
                         name="update_location"
                         :label="trans('admin/hardware/form.asset_location')"
-                        :help_html="trans('help.audit_help')"
+                        help_html="{!! trans('help.audit_help') !!}"
                     />
                 @endif
 
@@ -85,7 +85,7 @@
                 {{-- Shared audit image. If uploaded, the same file is
                      saved per-asset (audit-{id}-...) and attached to
                      every audit log entry --}}
-                <x-input.image-upload :helpText="trans('general.audit_images_help')" />
+                <x-input.image-upload fieldname="file[0]" :helpText="trans('general.audit_images_help')" />
 
                 <x-slot:customfooter>
                     <div class="box-footer">
