@@ -35,15 +35,13 @@ class IntuneClient
 
     /**
      * Iterate every managed device visible to the app registration.
-     * Uses Graph's `@odata.nextLink` for cursor pagination. The
-     * cursor URL is absolute and includes the base host, so we hand
-     * it straight to Http::get() rather than composing against
-     * $graphBaseUrl a second time.
+     * Uses Graph's `@odata.nextLink` for cursor pagination.
      *
      * @return iterable<int, array<string, mixed>>
      */
     public function managedDevices(): iterable
     {
+        $graphOrigin = $this->origin($this->graphBaseUrl);
         $url = rtrim($this->graphBaseUrl, '/').'/v1.0/deviceManagement/managedDevices';
 
         do {
@@ -53,8 +51,70 @@ class IntuneClient
                 yield $device;
             }
 
-            $url = $response['@odata.nextLink'] ?? null;
+            $url = $this->rebasedCursor($response['@odata.nextLink'] ?? null, $graphOrigin);
         } while ($url !== null);
+    }
+
+    /**
+     * Strip a server-supplied absolute URL down to path+query and
+     * re-base it onto the configured graph origin, so a hostile
+     * upstream can't redirect the cursor (and its bearer) to an
+     * attacker-chosen target. Returns null when the cursor is
+     * absent or unparseable, or when the configured graph URL
+     * itself has no usable origin.
+     */
+    private function rebasedCursor(?string $url, ?string $origin): ?string
+    {
+        if ($url === null || $url === '' || $origin === null) {
+            return null;
+        }
+
+        $parsed = parse_url($url);
+        if (! is_array($parsed)) {
+            return null;
+        }
+
+        return $origin.($parsed['path'] ?? '/').(isset($parsed['query']) ? '?'.$parsed['query'] : '');
+    }
+
+    /**
+     * Scheme+host(+port) of the given absolute URL, or null when it is
+     * not a parseable absolute URL.
+     */
+    private function origin(string $url): ?string
+    {
+        $parts = parse_url($url);
+        if (! is_array($parts) || empty($parts['scheme']) || empty($parts['host'])) {
+            return null;
+        }
+
+        return $parts['scheme'].'://'.$parts['host'].(isset($parts['port']) ? ':'.$parts['port'] : '');
+    }
+
+    /**
+     * Per-device GET against Graph's managedDevice endpoint with a
+     * caller-chosen $select set. Used for properties the LIST
+     * endpoint always returns null for (ethernetMacAddress,
+     * physicalMemoryInBytes, etc. - Microsoft docs explicitly flag
+     * these as "requires per-device GET"). Returns the attributes
+     * array on success. Fails soft to null on 4xx/5xx so one bad
+     * device doesn't abort the enclosing enrichment pass.
+     *
+     * @param  array<int, string>  $select
+     * @return array<string, mixed>|null
+     */
+    public function managedDeviceDetail(string $deviceId, array $select): ?array
+    {
+        $url = rtrim($this->graphBaseUrl, '/').'/v1.0/deviceManagement/managedDevices/'.rawurlencode($deviceId);
+
+        try {
+            return $this->request()
+                ->get($url, ['$select' => implode(',', $select)])
+                ->throw()
+                ->json();
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     /**
