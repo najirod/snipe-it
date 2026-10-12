@@ -31,7 +31,7 @@ class ZD421_38x19 extends ZD421
     public function getSupportLogo()      { return false; }
     public function getSupportTitle()     { return true; }
 
-    public function preparePDF($pdf) {}
+    public function preparePDF(\TCPDF $pdf): void {}
 
     public function write($pdf, $record) {
         $pa = $this->getPrintableArea();
