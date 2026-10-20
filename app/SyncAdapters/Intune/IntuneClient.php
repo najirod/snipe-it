@@ -2,6 +2,7 @@
 
 namespace App\SyncAdapters\Intune;
 
+use App\SyncAdapters\Traits\RetriesTransientHttpErrors;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
 
@@ -20,9 +21,20 @@ use Illuminate\Support\Facades\Http;
  * `loginBaseUrl` constructor args let the adapter derive the login
  * host from the Graph host so the settings-page URL field controls
  * both endpoints.
+ *
+ * Graph API version: the unfiltered device pull uses `/v1.0/`, the
+ * stable surface. Two call sites fall over to `/beta/` because the
+ * stable version does not expose the data they need: the
+ * composed-notes push on `updateManagedDevice()` (notes is a
+ * beta-only writable field), and the entire scope-tag filter flow
+ * (roleScopeTags resource and the roleScopeTagIds filter on
+ * managedDevices). Microsoft does not guarantee beta stability, so a
+ * Graph side change can break those paths without warning.
  */
 class IntuneClient
 {
+    use RetriesTransientHttpErrors;
+
     private ?string $token = null;
 
     public function __construct(
@@ -37,22 +49,83 @@ class IntuneClient
      * Iterate every managed device visible to the app registration.
      * Uses Graph's `@odata.nextLink` for cursor pagination.
      *
+     * When $scopeTagIds is non-empty, appends an OData `$filter` that
+     * only returns devices whose `roleScopeTagIds` array intersects the
+     * caller's list. Pushes the filter server-side so large tenants
+     * with distributed-IT separation don't pay the pagination cost for
+     * devices they don't even care about.
+     * See https://learn.microsoft.com/en-us/intune/fundamentals/role-based-access-control/scope-tags.
+     *
+     * @param  array<int, string>|null  $scopeTagIds  Null = no filter. Empty array = no filter.
      * @return iterable<int, array<string, mixed>>
      */
-    public function managedDevices(): iterable
+    public function managedDevices(?array $scopeTagIds = null): iterable
     {
         $graphOrigin = $this->origin($this->graphBaseUrl);
-        $url = rtrim($this->graphBaseUrl, '/').'/v1.0/deviceManagement/managedDevices';
+
+        // roleScopeTagIds filtering lives on the beta surface. On
+        // /v1.0/ the field isn't exposed, so a $filter against it
+        // 400s. Fall over to /beta/ only when a filter is in use so
+        // tenants that don't touch scope tags stay on the stable
+        // surface.
+        $apiVersion = (is_array($scopeTagIds) && $scopeTagIds !== []) ? 'beta' : 'v1.0';
+        $url = rtrim($this->graphBaseUrl, '/').'/'.$apiVersion.'/deviceManagement/managedDevices';
+
+        $query = [];
+        if (is_array($scopeTagIds) && $scopeTagIds !== []) {
+            // Graph expects: $filter=roleScopeTagIds/any(x: x eq 'id1' or x eq 'id2')
+            // Quote each id and OR them inside a single any() clause.
+            $clauses = array_map(fn (string $id) => "x eq '".addslashes($id)."'", $scopeTagIds);
+            $query['$filter'] = 'roleScopeTagIds/any(x: '.implode(' or ', $clauses).')';
+        }
 
         do {
-            $response = $this->request()->get($url)->throw()->json();
+            $response = $this->request()->get($url, $query)->throw()->json();
 
             foreach (($response['value'] ?? []) as $device) {
                 yield $device;
             }
 
+            // Query only on the first page. Graph's nextLink carries
+            // the filter forward in its own cursor opaquely.
+            $query = [];
+
             $url = $this->rebasedCursor($response['@odata.nextLink'] ?? null, $graphOrigin);
         } while ($url !== null);
+    }
+
+    /**
+     * Fetch every role scope tag defined in the tenant. Used by the
+     * adapter to resolve admin-entered scope tag names into the IDs
+     * the managedDevices filter needs, and (eventually) to populate
+     * a settings-page multiselect of available tags.
+     *
+     * Returns an array of ['id' => '...', 'displayName' => '...'].
+     *
+     * @return array<int, array{id: string, displayName: string}>
+     */
+    public function roleScopeTags(): array
+    {
+        $graphOrigin = $this->origin($this->graphBaseUrl);
+        // The roleScopeTag resource is only exposed on /beta/. The
+        // stable v1.0 surface returns a 400 "Resource not found for
+        // the segment 'roleScopeTags'" so there is no fallback.
+        $url = rtrim($this->graphBaseUrl, '/').'/beta/deviceManagement/roleScopeTags';
+
+        $out = [];
+        do {
+            $response = $this->request()->get($url)->throw()->json();
+            foreach (($response['value'] ?? []) as $tag) {
+                $id = $tag['id'] ?? null;
+                $name = $tag['displayName'] ?? null;
+                if (is_scalar($id) && is_string($name)) {
+                    $out[] = ['id' => (string) $id, 'displayName' => $name];
+                }
+            }
+            $url = $this->rebasedCursor($response['@odata.nextLink'] ?? null, $graphOrigin);
+        } while ($url !== null);
+
+        return $out;
     }
 
     /**
@@ -74,7 +147,21 @@ class IntuneClient
             return null;
         }
 
-        return $origin.($parsed['path'] ?? '/').(isset($parsed['query']) ? '?'.$parsed['query'] : '');
+        // Reject path-relative cursors with no leading slash
+        // ("page2" rather than "/page2"). Rebasing those produced an
+        // unparseable "https://hostpage2" that aborted the sync on the
+        // next iteration. Fails safe but we'd rather be explicit
+        // (reported post-fix by Zer0Gate as a robustness note).
+        // Only path+query is kept from the supplied cursor on purpose,
+        // so any path prefix on the configured base URL (not Graph's
+        // case, but legal in general) is dropped. Absolute cursors are
+        // the standard shape here and this matches that.
+        $path = $parsed['path'] ?? '/';
+        if (! str_starts_with($path, '/')) {
+            return null;
+        }
+
+        return $origin.$path.(isset($parsed['query']) ? '?'.$parsed['query'] : '');
     }
 
     /**
@@ -169,9 +256,11 @@ class IntuneClient
 
     private function request(): PendingRequest
     {
-        return Http::withToken($this->bearer())
-            ->withOptions(['allow_redirects' => false])
-            ->acceptJson()
-            ->timeout(30);
+        return $this->withTransientRetry(
+            Http::withToken($this->bearer())
+                ->withOptions(['allow_redirects' => false])
+                ->acceptJson()
+                ->timeout(30)
+        );
     }
 }

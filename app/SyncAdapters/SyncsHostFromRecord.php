@@ -166,6 +166,26 @@ trait SyncsHostFromRecord
             return null;
         }
 
+        // UX layer on top of the authoritative require_serial check
+        // in Asset::save().
+        if ($record->hardwareSerial === null || $record->hardwareSerial === '') {
+            $modelName = self::resolveModelSourceValue($record, $mapping);
+            if ($modelName !== null && $modelName !== '') {
+                $existingModel = AssetModel::where('name', $modelName)->first();
+                if ($existingModel !== null && (string) $existingModel->require_serial === '1') {
+                    Log::channel('sync-adapters')->warning(sprintf(
+                        '%s sync: skipped %s record %s (no serial, and asset model "%s" requires one)',
+                        $adapter?->name() ?? $record->sourceKey,
+                        $record->sourceKey,
+                        $record->sourceId,
+                        $existingModel->name,
+                    ));
+
+                    return null;
+                }
+            }
+        }
+
         $asset = self::createShellAsset($record, $instance, $mapping);
 
         // Identity row created empty of inventory columns. the
@@ -866,9 +886,16 @@ trait SyncsHostFromRecord
                 // Watson validating rule wants date_format:Y-m-d.
                 // Log + skip if the string isn't parseable so a bad record
                 // doesn't donk the sync run.
+                //
+                // Rotate to app.timezone before extracting the date part so
+                // a vendor datetime at the UTC day boundary (e.g.
+                // "2024-07-23T03:00:00Z" which is 2024-07-22 20:00 Pacific)
+                // records the date the user would recognize. Same reason
+                // the last_seen path converts to app timezone before
+                // producing its naive string. #19765.
                 if ($value !== null && $value !== '') {
                     try {
-                        $asset->purchase_date = \Carbon\Carbon::parse((string) $value)->format('Y-m-d');
+                        $asset->purchase_date = \Carbon\Carbon::parse((string) $value)->timezone(config('app.timezone'))->format('Y-m-d');
                     } catch (\Exception $e) {
                         Log::channel('sync-adapters')->warning("Skipping unparseable purchase_date \"{$value}\" for asset {$asset->id}: ".$e->getMessage());
                     }
@@ -1064,6 +1091,10 @@ trait SyncsHostFromRecord
         $model->name = $modelName;
         $model->category_id = self::categoryIdFor($instance, $record);
         $model->manufacturer_id = self::manufacturerIdFor($record);
+        $adapter = $instance?->adapter();
+        if ($adapter instanceof SyncAdapter) {
+            $model->fieldset_id = $adapter->defaultFieldsetId();
+        }
         $model->save();
 
         return $model->id;

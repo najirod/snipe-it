@@ -14,7 +14,6 @@ use App\Models\MaintenanceType;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 /**
@@ -192,7 +191,6 @@ class MaintenancesController extends Controller
      * @author  Vincent Sposato <vincent.sposato@gmail.com>
      *
      * @param  Request  $request
-     * @param  int  $maintenanceId
      *
      * @version v1.0
      *
@@ -315,10 +313,6 @@ class MaintenancesController extends Controller
         $objectType = 'maintenances';
         $storagePath = parent::getMapStoragePath()[$objectType];
 
-        if (! Storage::exists($storagePath)) {
-            Storage::makeDirectory($storagePath, 775);
-        }
-
         $uploadFileRequest = app(UploadFileRequest::class);
 
         foreach ((array) $request->file('file') as $file) {
@@ -388,8 +382,6 @@ class MaintenancesController extends Controller
      *
      * @author  Vincent Sposato <vincent.sposato@gmail.com>
      *
-     * @param  int  $maintenanceId
-     *
      * @version v1.0
      *
      * @since [v1.8]
@@ -410,8 +402,6 @@ class MaintenancesController extends Controller
      *  View an asset maintenance
      *
      * @author  Vincent Sposato <vincent.sposato@gmail.com>
-     *
-     * @param  int  $maintenanceId
      *
      * @version v1.0
      *
