@@ -89,17 +89,6 @@ class ComponentsController extends Controller
                 break;
         }
 
-        $filter = [];
-
-        if ($request->filled('filter')) {
-            $filter = json_decode($request->input('filter'), true);
-
-            $filter = array_filter($filter, function ($key) use ($allowed_columns) {
-                return in_array($key, $allowed_columns);
-            }, ARRAY_FILTER_USE_KEY);
-
-        }
-
         // This invokes the Searchable model trait scopeTextSearch and will handle input by search or by advanced search filter
         if ($request->filled('filter') || $request->filled('search')) {
             $components->TextSearch($request->input('filter') ? $request->input('filter') : $request->input('search'));
@@ -823,12 +812,18 @@ class ComponentsController extends Controller
      */
     public function requestable(Request $request): array
     {
+        $this->authorize('viewRequestable', Component::class);
+
         $query = Component::with('category', 'location', 'company', 'manufacturer', 'requests')
             ->withCount('assets as components_assets_count')
             ->Requestable();
 
         if ($request->filled('search')) {
-            $query->TextSearch($request->input('search'));
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('components.name', 'LIKE', '%'.$search.'%')
+                    ->orWhere('components.model_number', 'LIKE', '%'.$search.'%');
+            });
         }
 
         $total = $query->count();

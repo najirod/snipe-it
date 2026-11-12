@@ -97,7 +97,7 @@ class ReportsController extends Controller
                 trans('admin/accessories/general.total'),
                 trans('admin/accessories/general.remaining'),
             ];
-            fputcsv($handle, $header, escape: '\\');
+            fputcsv($handle, $header, escape: '\\', eol: "\r\n");
 
             $formatter = new EscapeFormula('`');
 
@@ -112,9 +112,9 @@ class ReportsController extends Controller
                         ];
 
                         if (config('app.escape_formulas') === false) {
-                            fputcsv($handle, $row, escape: '\\');
+                            fputcsv($handle, $row, escape: '\\', eol: "\r\n");
                         } else {
-                            fputcsv($handle, $formatter->escapeRecord($row), escape: '\\');
+                            fputcsv($handle, $formatter->escapeRecord($row), escape: '\\', eol: "\r\n");
                         }
                     }
                 });
@@ -171,7 +171,7 @@ class ReportsController extends Controller
                 trans('admin/hardware/table.book_value'),
                 trans('admin/hardware/table.diff'),
             ];
-            fputcsv($handle, $header, escape: '\\');
+            fputcsv($handle, $header, escape: '\\', eol: "\r\n");
 
             Asset::with('model', 'assignedTo', 'status', 'defaultLoc', 'assetlog')
                 ->orderBy('created_at', 'DESC')
@@ -212,9 +212,9 @@ class ReportsController extends Controller
                         ];
 
                         if (config('app.escape_formulas') === false) {
-                            fputcsv($handle, $row, escape: '\\');
+                            fputcsv($handle, $row, escape: '\\', eol: "\r\n");
                         } else {
-                            fputcsv($handle, $formatter->escapeRecord($row), escape: '\\');
+                            fputcsv($handle, $formatter->escapeRecord($row), escape: '\\', eol: "\r\n");
                         }
                     }
                 });
@@ -349,7 +349,7 @@ class ReportsController extends Controller
             ];
             $executionTime = microtime(true) - $_SERVER['REQUEST_TIME_FLOAT'];
             Log::debug('Starting headers: '.$executionTime);
-            fputcsv($handle, $header, escape: '\\');
+            fputcsv($handle, $header, escape: '\\', eol: "\r\n");
             $executionTime = microtime(true) - $_SERVER['REQUEST_TIME_FLOAT'];
             Log::debug('Added headers: '.$executionTime);
 
@@ -380,20 +380,14 @@ class ReportsController extends Controller
                             $item_name = '';
                         }
 
-                        // Mask license serial when the current user
-                        // does not hold viewKeys. A license's serial is
-                        // the product key, and the licenses / index /
-                        // export sinks already treat it that way. Without
-                        // this the Activity report CSV leaks every key
-                        // for licenses in the caller's scope.
-                        $itemSerial = null;
-                        if ($actionlog->item && $actionlog->item->serial) {
-                            if ($actionlog->item instanceof License && ! Gate::allows('viewKeys', $actionlog->item)) {
-                                $itemSerial = License::PRODUCT_KEY_MASK;
-                            } else {
-                                $itemSerial = $actionlog->item->serial;
-                            }
-                        }
+                        // License::getSerialAttribute and
+                        // Actionlog::getLogMetaAttribute apply the
+                        // licenses.keys mask upstream, so the raw
+                        // product key never reaches this writer when
+                        // the viewer is not permitted.
+                        $itemSerial = ($actionlog->item && $actionlog->item->serial)
+                            ? $actionlog->item->serial
+                            : null;
 
                         $row = [
                             $actionlog->created_at,
@@ -414,11 +408,11 @@ class ReportsController extends Controller
 
                         // CSV_ESCAPE_FORMULAS is set to false in the .env
                         if (config('app.escape_formulas') === false) {
-                            fputcsv($handle, $row, escape: '\\');
+                            fputcsv($handle, $row, escape: '\\', eol: "\r\n");
 
                             // CSV_ESCAPE_FORMULAS is set to true or is not set in the .env
                         } else {
-                            fputcsv($handle, $formatter->escapeRecord($row), escape: '\\');
+                            fputcsv($handle, $formatter->escapeRecord($row), escape: '\\', eol: "\r\n");
                         }
                     }
                 });
@@ -479,7 +473,7 @@ class ReportsController extends Controller
                 trans('general.depreciation'),
                 trans('general.purchase_cost'),
             ];
-            fputcsv($handle, $header, escape: '\\');
+            fputcsv($handle, $header, escape: '\\', eol: "\r\n");
 
             License::orderBy('created_at', 'DESC')->chunk(500, function ($licenses) use ($handle, $formatter) {
                 foreach ($licenses as $license) {
@@ -503,9 +497,9 @@ class ReportsController extends Controller
                     ];
 
                     if (config('app.escape_formulas') === false) {
-                        fputcsv($handle, $row, escape: '\\');
+                        fputcsv($handle, $row, escape: '\\', eol: "\r\n");
                     } else {
-                        fputcsv($handle, $formatter->escapeRecord($row), escape: '\\');
+                        fputcsv($handle, $formatter->escapeRecord($row), escape: '\\', eol: "\r\n");
                     }
                 }
             });
@@ -577,10 +571,6 @@ class ReportsController extends Controller
             fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
 
             $header = [];
-
-            if ($request->filled('is_shared')) {
-                $header[] = trans('admin/reports/general.share_template');
-            }
 
             if ($request->filled('id')) {
                 $header[] = trans('general.id');
@@ -801,14 +791,9 @@ class ReportsController extends Controller
             // cell like "=cmd|'/c calc.exe'!A1" would evaluate as a
             // formula on a reports.view user's workstation.
             $headerFormatter = new EscapeFormula('`');
-            fputcsv($handle, $headerFormatter->escapeRecord($header), escape: '\\');
+            fputcsv($handle, $headerFormatter->escapeRecord($header), escape: '\\', eol: "\r\n");
             $executionTime = microtime(true) - $_SERVER['REQUEST_TIME_FLOAT'];
             Log::debug('Added headers: '.$executionTime);
-
-            if ($request->filled('is_shared')) {
-                // to fill with logic for the report template and NOT the assets retrieved by the query
-                // do we scope here or??
-            }
 
             $assets = Asset::select('assets.*')->with([
                 'location', 'status', 'company', 'defaultLoc',
@@ -1275,11 +1260,11 @@ class ReportsController extends Controller
 
                     // CSV_ESCAPE_FORMULAS is set to false in the .env
                     if (config('app.escape_formulas') === false) {
-                        fputcsv($handle, $row, escape: '\\');
+                        fputcsv($handle, $row, escape: '\\', eol: "\r\n");
 
                         // CSV_ESCAPE_FORMULAS is set to true or is not set in the .env
                     } else {
-                        fputcsv($handle, $formatter->escapeRecord($row), escape: '\\');
+                        fputcsv($handle, $formatter->escapeRecord($row), escape: '\\', eol: "\r\n");
                     }
 
                     $executionTime = microtime(true) - $_SERVER['REQUEST_TIME_FLOAT'];
@@ -1343,7 +1328,7 @@ class ReportsController extends Controller
                 trans('admin/maintenances/form.is_warranty'),
                 trans('admin/maintenances/form.notes'),
             ];
-            fputcsv($handle, $header, escape: '\\');
+            fputcsv($handle, $header, escape: '\\', eol: "\r\n");
 
             // No completed-filter here — exports every maintenance, active
             // or completed. Eager-load the four relations the row loop
@@ -1376,9 +1361,9 @@ class ReportsController extends Controller
                         ];
 
                         if (config('app.escape_formulas') === false) {
-                            fputcsv($handle, $row, escape: '\\');
+                            fputcsv($handle, $row, escape: '\\', eol: "\r\n");
                         } else {
-                            fputcsv($handle, $formatter->escapeRecord($row), escape: '\\');
+                            fputcsv($handle, $formatter->escapeRecord($row), escape: '\\', eol: "\r\n");
                         }
                     }
                 });

@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\FileStorage;
 use App\Http\Traits\UniqueUndeletedTrait;
 use App\Models\Builders\LocationQueryBuilder;
+use App\Models\Contracts\Importable;
 use App\Models\Traits\CompanyableTrait;
 use App\Models\Traits\HasUploads;
 use App\Models\Traits\Loggable;
@@ -22,7 +23,7 @@ use Watson\Validating\ValidatingTrait;
 /**
  * @mixin IdeHelperLocation
  */
-class Location extends SnipeModel
+class Location extends SnipeModel implements Importable
 {
     use CompanyableTrait;
     use HasFactory;
@@ -123,6 +124,55 @@ class Location extends SnipeModel
         'manager' => ['first_name', 'last_name', 'display_name'],
         'adminuser' => ['first_name', 'last_name', 'display_name'],
     ];
+
+    /**
+     * Advanced-search filterable fields.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public static function filterableFields(): array
+    {
+        return [
+            [
+                'field' => 'company',
+                'type' => 'fk',
+                'column' => 'company_id',
+                'endpoint' => 'companies',
+                'label' => trans('admin/companies/table.title'),
+            ],
+            [
+                'field' => 'parent',
+                'type' => 'fk',
+                'column' => 'parent_id',
+                'endpoint' => 'locations',
+                'label' => trans('admin/locations/table.parent'),
+            ],
+            [
+                'field' => 'manager',
+                'type' => 'fk',
+                'column' => 'manager_id',
+                'endpoint' => 'users',
+                'label' => trans('admin/users/table.manager'),
+            ],
+            [
+                'field' => 'created_by',
+                'type' => 'fk',
+                'column' => 'created_by',
+                'endpoint' => 'users',
+                'label' => trans('general.created_by'),
+            ],
+            [
+                'field' => 'created_at',
+                'type' => 'date-range',
+                'label' => trans('general.created_at'),
+            ],
+            [
+                'field' => 'updated_at',
+                'type' => 'date-range',
+                'label' => trans('general.updated_at'),
+            ],
+        ];
+    }
 
     /**
      * On hard-delete, wipe the image file and Files-tab attachments.

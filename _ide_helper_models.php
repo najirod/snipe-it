@@ -264,8 +264,10 @@ namespace App\Models{
  * @method static \App\Models\Builders\ActionlogQueryBuilder<static>|Actionlog orWhereMultipleColumns(array $columns, $term)
  * @method static \App\Models\Builders\ActionlogQueryBuilder<static>|Actionlog orderByAssetNextAuditDate(string $order)
  * @method static \App\Models\Builders\ActionlogQueryBuilder<static>|Actionlog orderByCreatedBy(string $order)
+ * @method static \App\Models\Builders\ActionlogQueryBuilder<static>|Actionlog orderByFilteredItemName(string $classString, string $order)
  * @method static \App\Models\Builders\ActionlogQueryBuilder<static>|Actionlog orderByItemName(string $order)
  * @method static \App\Models\Builders\ActionlogQueryBuilder<static>|Actionlog orderByLocation(string $order)
+ * @method static \App\Models\Builders\ActionlogQueryBuilder<static>|Actionlog orderByPolymorphicItemName(string $order)
  * @method static \App\Models\Builders\ActionlogQueryBuilder<static>|Actionlog query()
  * @method static \App\Models\Builders\ActionlogQueryBuilder<static>|Actionlog textSearch($search)
  * @method static \App\Models\Builders\ActionlogQueryBuilder<static>|Actionlog whereAcceptSignature($value)
@@ -315,6 +317,7 @@ namespace App\Models{
  * @property \Carbon\Carbon|string|null $last_checkin
  * @property bool $requestable
  * @property Asset|Location|User|null $assigned Current checkout target. morphTo relation named `assigned` (declared on method `assignedTo()`). Eloquent resolves the dynamic property by the morphTo name arg, not the method name, so this `@property` is distinct from `@property ... $assignedTo` written by ide-helper.
+ * @property Asset|Location|User|null $assignedTo Current checkout target. morphTo relation named `assigned` (declared on method `assignedTo()`). Eloquent resolves the dynamic property by the morphTo name arg, not the method name, so this `@property` is distinct from `@property ... $assigned` written by ide-helper.
  * @property int $id
  * @property string|null $name
  * @property string|null $asset_tag
@@ -361,6 +364,7 @@ namespace App\Models{
  * @property string|null $_snipeit_dscsdaffds_13
  * @property string|null $_snipeit_last_seen_network_heartbeat_14
  * @property string|null $_snipeit_disk_encryption_15
+ * @property string|null $_snipeit_some_number_16
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Accessory> $accessories
  * @property-read int|null $accessories_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Actionlog> $actionlog
@@ -372,7 +376,6 @@ namespace App\Models{
  * @property-read int|null $assigned_accessories_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, Asset> $assignedAssets
  * @property-read int|null $assigned_assets_count
- * @property-read \Illuminate\Database\Eloquent\Model|\Eloquent|null $assignedTo
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\CalendarEvent> $calendarEvents
  * @property-read int|null $calendar_events_count
  * @property-read \App\Models\Category|null $category
@@ -536,6 +539,7 @@ namespace App\Models{
  * @method static \App\Models\Builders\AssetQueryBuilder<static>|Asset whereSnipeitRam3($value)
  * @method static \App\Models\Builders\AssetQueryBuilder<static>|Asset whereSnipeitSampleDate10($value)
  * @method static \App\Models\Builders\AssetQueryBuilder<static>|Asset whereSnipeitSampleDatetime11($value)
+ * @method static \App\Models\Builders\AssetQueryBuilder<static>|Asset whereSnipeitSomeNumber16($value)
  * @method static \App\Models\Builders\AssetQueryBuilder<static>|Asset whereSnipeitTestCheckbox7($value)
  * @method static \App\Models\Builders\AssetQueryBuilder<static>|Asset whereSnipeitTestEncrypted6($value)
  * @method static \App\Models\Builders\AssetQueryBuilder<static>|Asset whereSnipeitTestRadio8($value)
@@ -606,6 +610,9 @@ namespace App\Models{
  * @version v1.0
  * @property int $id
  * @property string $name
+ * @property string|null $mfg_marketing_name
+ * @property \Illuminate\Support\Carbon|null $mfg_release_date
+ * @property \Illuminate\Support\Carbon|null $mfg_discontinued_date
  * @property string|null $tag_slug
  * @property string|null $model_number
  * @property string|null $hardware_identifier
@@ -698,6 +705,9 @@ namespace App\Models{
  * @method static \App\Models\Builders\AssetModelQueryBuilder<static>|AssetModel whereId($value)
  * @method static \App\Models\Builders\AssetModelQueryBuilder<static>|AssetModel whereImage($value)
  * @method static \App\Models\Builders\AssetModelQueryBuilder<static>|AssetModel whereManufacturerId($value)
+ * @method static \App\Models\Builders\AssetModelQueryBuilder<static>|AssetModel whereMfgDiscontinuedDate($value)
+ * @method static \App\Models\Builders\AssetModelQueryBuilder<static>|AssetModel whereMfgMarketingName($value)
+ * @method static \App\Models\Builders\AssetModelQueryBuilder<static>|AssetModel whereMfgReleaseDate($value)
  * @method static \App\Models\Builders\AssetModelQueryBuilder<static>|AssetModel whereMinAmt($value)
  * @method static \App\Models\Builders\AssetModelQueryBuilder<static>|AssetModel whereModelNumber($value)
  * @method static \App\Models\Builders\AssetModelQueryBuilder<static>|AssetModel whereName($value)
@@ -1443,6 +1453,7 @@ namespace App\Models{
  * @property int $display_checkin
  * @property int $display_checkout
  * @property int $display_audit
+ * @property-read \App\Models\User|null $adminuser
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\AssetModel> $defaultValues
  * @property-read int|null $default_values_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\CustomFieldset> $fieldset
@@ -2236,11 +2247,6 @@ namespace App\Models{
  * @property-read mixed $expires_formatted_date
  * @property mixed $asset_id
  * @property mixed $completion_date
- * @property-read int|null $duration_in_days
- * @property-read mixed|null $effective_completion_date
- * @property-read bool $is_overdue
- * @property-read string|null $progress_label
- * @property-read int $progress_percent
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Actionlog> $history
  * @property-read int|null $history_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Actionlog> $log
@@ -2361,7 +2367,9 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|MaintenanceType newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|MaintenanceType newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|MaintenanceType onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|MaintenanceType orWhereMultipleColumns(array $columns, $term)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|MaintenanceType query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|MaintenanceType textSearch($search)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|MaintenanceType whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|MaintenanceType whereCreatedBy($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|MaintenanceType whereDeletedAt($value)
@@ -2972,6 +2980,41 @@ namespace App\Models{
  */
 	#[\AllowDynamicProperties]
 	class IdeHelperSamlNonce {}
+}
+
+namespace App\Models{
+/**
+ * Named filter-preset for a listing page's advanced-search. Each
+ * record stores a URL query string captured from the advanced-search
+ * modal. Private to the creator for v1 (no sharing/default yet).
+ *
+ * @property int $id
+ * @property int $created_by
+ * @property string $table_name
+ * @property string|null $model
+ * @property string $name
+ * @property string $query_string
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \App\Models\User|null $creator
+ * @method static \Database\Factories\SavedSearchFactory factory($count = null, $state = [])
+ * @method static \App\Models\Builders\SavedSearchQueryBuilder<static>|SavedSearch forTable(string $tableName)
+ * @method static \App\Models\Builders\SavedSearchQueryBuilder<static>|SavedSearch newModelQuery()
+ * @method static \App\Models\Builders\SavedSearchQueryBuilder<static>|SavedSearch newQuery()
+ * @method static \App\Models\Builders\SavedSearchQueryBuilder<static>|SavedSearch ownedByCurrent()
+ * @method static \App\Models\Builders\SavedSearchQueryBuilder<static>|SavedSearch query()
+ * @method static \App\Models\Builders\SavedSearchQueryBuilder<static>|SavedSearch whereCreatedAt($value)
+ * @method static \App\Models\Builders\SavedSearchQueryBuilder<static>|SavedSearch whereCreatedBy($value)
+ * @method static \App\Models\Builders\SavedSearchQueryBuilder<static>|SavedSearch whereId($value)
+ * @method static \App\Models\Builders\SavedSearchQueryBuilder<static>|SavedSearch whereModel($value)
+ * @method static \App\Models\Builders\SavedSearchQueryBuilder<static>|SavedSearch whereName($value)
+ * @method static \App\Models\Builders\SavedSearchQueryBuilder<static>|SavedSearch whereQueryString($value)
+ * @method static \App\Models\Builders\SavedSearchQueryBuilder<static>|SavedSearch whereTableName($value)
+ * @method static \App\Models\Builders\SavedSearchQueryBuilder<static>|SavedSearch whereUpdatedAt($value)
+ * @mixin \Eloquent
+ */
+	#[\AllowDynamicProperties]
+	class IdeHelperSavedSearch {}
 }
 
 namespace App\Models{

@@ -45,6 +45,9 @@ class AssetModelsController extends Controller
                 'image',
                 'name',
                 'model_number',
+                'mfg_marketing_name',
+                'mfg_release_date',
+                'mfg_discontinued_date',
                 'min_amt',
                 'eol',
                 'notes',
@@ -73,6 +76,9 @@ class AssetModelsController extends Controller
             'models.image',
             'models.name',
             'models.model_number',
+            'models.mfg_marketing_name',
+            'models.mfg_release_date',
+            'models.mfg_discontinued_date',
             'models.min_amt',
             'models.eol',
             'models.created_by',
@@ -422,12 +428,18 @@ class AssetModelsController extends Controller
      */
     public function requestable(Request $request): array
     {
+        $this->authorize('viewRequestable', AssetModel::class);
+
         $query = AssetModel::with('category', 'manufacturer', 'requests')
             ->withCount('availableAssets as remaining')
             ->Requestable();
 
         if ($request->filled('search')) {
-            $query->TextSearch($request->input('search'));
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('models.name', 'LIKE', '%'.$search.'%')
+                    ->orWhere('models.model_number', 'LIKE', '%'.$search.'%');
+            });
         }
 
         $total = $query->count();
@@ -439,6 +451,6 @@ class AssetModelsController extends Controller
 
         $rows = $query->orderBy($sort, $order)->skip($offset)->take($limit)->get();
 
-        return (new AssetModelsTransformer)->transformAssetModels($rows, $total);
+        return (new AssetModelsTransformer)->transformRequestedModels($rows, $total);
     }
 }
